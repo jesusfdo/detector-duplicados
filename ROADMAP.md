@@ -15,7 +15,7 @@
 
 ## Estado actual (ultima actualización: 2025-06-16)
 
-||| Métrica | Valor | Estado |
+|||| Métrica | Valor | Estado |
 |||---|---|---|
 ||| Version | 1.0.0 | ✅ Estable |
 ||| Tests | 431 passing, 1 skipped | ✅ OK |
@@ -25,6 +25,30 @@
 ||| README.md | ✅ Actualizado con version final | ✅ |
 ||| CHANGELOG.md | ✅ Keep a Changelog | ✅ |
 ||| Dead code | ✅ Eliminado (run.py, src/detector.py) | ✅ |
+||| Build .exe | ✅ IMPORTS CORREGIDOS — artifact disponible | ✅ |
+
+### Notas de sesión final (2025-06-16 — Fase 7 completada)
+- **Tarea 1 (coverage):** COMPLETADA → 74% (objetivo 70%)
+  - Nuevo test file: `tests/test_cobertura_fase6.py` (21k chars, 103 tests)
+  - Cubre: html_report, cleaner core, cli args parser, cleaner scoring, papelera
+  - Tests de watchdog skippeados (mocks complejos de os.path.expanduser para paths)
+  - Coverage detallado: html_report 93%, cli 56%, cleaner 60%, db 90%, policies 93%
+- **Tarea 2 (ruff):** COMPLETADA → 217 errores → 0 (162 auto, 8 manual)
+- **Tarea 3 (dead code):** COMPLETADA → run.py y src/detector.py eliminados
+- **Tarea 4 (CHANGELOG):** COMPLETADA → archivo creado con Keep a Changelog format
+- **Tarea 5 (instalacion):** COMPLETADA → todos los comandos CLI validados en venv limpio
+- **Tarea 6 (version 1.0.0):** COMPLETADA → pyproject.toml + __init__.py actualizados
+- **Tarea 7 (README):** COMPLETADA → README 1.0.0 con CLI reference, policies, profiles, FAQ
+- **Fase 7 (docs):** COMPLETADA → toda la documentacion actualizada
+
+### Fix de build .exe — 2025-06-16
+- **Problema:** `.exe` se cerraba al instante con `ImportError: attempted relative import with no known parent package`
+- **Causa:** `cli.py` usaba imports relativos (`from .ui import ...`, `from .db import ...`, etc.) que fallan en entorno compilado
+- **Solución:** Convertir TODOS los imports relativos a absolutos (`from detector_duplicados.xxx import ...`)
+- **Typo en build.yml:** Corregido `detector_duplications` → `detector_duplicados` en `.github/workflows/build.yml`
+- **Artifact disponible:** `detector-windows` (~12.4 MB) en https://github.com/jesusfdo/detector-duplicados/actions/runs/27634301885
+- **Archivos corregidos:** `src/detector_duplicados/cli.py`, `.github/workflows/build.yml`, `.gitignore`
+- **CI/CD:** GitHub Actions configurado para builds automáticos en push a `main`/`master`
 
 ### Notas de sesión final (2025-06-16 — Fase 7 completada)
 - **Tarea 1 (coverage):** COMPLETADA → 74% (objetivo 70%)
