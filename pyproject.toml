@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "detector-duplicados"
+version = "1.0.0"
+description = "Escáner local de archivos duplicados con terminal Rich"
+requires-python = ">=3.11"
+dependencies = [
+    "rich>=13.0",
+]
+
+[project.scripts]
+detector = "detector_duplicados.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "T20"]
+ignore = [
+    "A003",  # Python builtin should not be assigned as attribute
+    "A004",  # rich's `from rich import print` shadows builtin — intentional in legacy script
+]
+exclude = [
+    "Detector de duplicados.py",  # legacy script, kept as backup
+    "Detector de duplicados.py.bak",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"src/**" = ["T201"]   # CLI tool — print is intentional for terminal output
+"tests/**" = [
+    "T201",   # allow print in tests
+    "E501",   # test data lines are often long
+    "F841",   # tests check file output, not return values
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["detector_duplicados*"]
