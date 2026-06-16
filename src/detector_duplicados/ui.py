@@ -8,7 +8,7 @@ Fase 3: Tablas interactivas, filtros, seleccion, acciones.
 
 from rich import box
 from rich.panel import Panel
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Confirm, Prompt, IntPrompt
 from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
@@ -38,48 +38,37 @@ def mostrar_panel_ayuda() -> None:
     al usuario sobre como usar la herramienta sin necesidad de conocer
     comandos de terminal.
     """
+    help_lines = [
+        ("¿Como usar esta herramienta?", "bold"),
+        ("", ""),
+        ("  1. Elige una de las opciones del menu principal", "info"),
+        ("", ""),
+        ("  2. Si eliges 'Escanear carpetas', escribe la ruta de la carpeta "
+         "donde tienes tus archivos", "warning"),
+        ("", ""),
+        ("     Ejemplo: /home/tu-nombre/Documents", "path"),
+        ("", ""),
+        ("  3. La herramienta encontrara archivos duplicados y te mostrara "
+         "los resultados en tablas", "info"),
+        ("", ""),
+        ("  4. Podras ver el detalle de cada escaneo, comparar escaneos anteriores "
+         "o exportar los resultados a un archivo de texto", "info"),
+        ("", ""),
+        ("  5. Tambien podras eliminar duplicados de forma segura con el cleanup", "success"),
+        ("", ""),
+        ("  6. Si no estas seguro, siempre puedes ver las estadisticas "
+         "de la base de datos", "info"),
+        ("", ""),
+        ("  7. Para salir del programa, selecciona la opcion "
+         "'Salir' en cualquier momento", "error"),
+    ]
+
     help_text = Text()
-    help_text.append(
-        "¿Como usar esta herramienta?\\n\\n",
-        style="bold",
-    )
-    help_text.append(
-        "  1. Elige una de las opciones del menu principal\\n\\n",
-        style="info",
-    )
-    help_text.append(
-        "  2. Si eliges 'Escanear carpetas', escribe la ruta de la carpeta "
-        "donde tienes tus archivos\\n\\n",
-        style="warning",
-    )
-    help_text.append(
-        "     Ejemplo: /home/tu-nombre/Documents\\n\\n",
-        style="path",
-    )
-    help_text.append(
-        "  3. La herramienta encontrara archivos duplicados y te mostrara "
-        "los resultados en tablas\\n\\n",
-        style="info",
-    )
-    help_text.append(
-        "  4. Podras ver el detalle de cada escaneo, comparar escaneos anteriores "
-        "o exportar los resultados a un archivo de texto\\n\\n",
-        style="info",
-    )
-    help_text.append(
-        "  5. Tambien podras eliminar duplicados de forma segura con el cleanup\\n\\n",
-        style="success",
-    )
-    help_text.append(
-        "  6. Si no estas seguro, siempre puedes ver las estadisticas "
-        "de la base de datos\\n\\n",
-        style="info",
-    )
-    help_text.append(
-        "  7. Para salir del programa, selecciona la opcion "
-        "'Salir' en cualquier momento\\n",
-        style="error",
-    )
+    for line, style in help_lines:
+        if line == "":
+            help_text.append("\n", style=style)
+        else:
+            help_text.append(line + "\n", style=style)
 
     console.print(
         Panel(

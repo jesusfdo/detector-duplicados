@@ -220,8 +220,6 @@ def main_interactivo() -> None:
 
     mostrar_panel_ayuda()
 
-    console.print("[bold highlight]=== Detector de Duplicados (Modo Interactivo) ===[/]\n")
-
     opciones = [
         "Escanear nuevas carpetas",
         "Ver escaneos guardados",
@@ -234,15 +232,24 @@ def main_interactivo() -> None:
     ]
 
     while True:
-        seleccion = IntPrompt.ask(
-            "\nSeleccione una opcion",
+        # Mostrar menu con numeracion clara
+        console.print("\n[bold highlight]=== Menu Principal ===[/]")
+        for i, opcion in enumerate(opciones, 1):
+            console.print(f"  [info]{i}[/]. {opcion}")
+        console.print()
+
+        # Pedir seleccion con validacion
+        seleccion_str = Prompt.ask(
+            "[bold info]Seleccione una opcion[/] (1-" + str(len(opciones)) + ")",
             choices=[str(i) for i in range(1, len(opciones) + 1)],
             console=console,
         )
+        seleccion = int(seleccion_str)
 
         if seleccion == 1:  # Escanear
             ruta = Prompt.ask(
-                "\nIngrese la ruta a escanear (separar multiples con coma)", console=console
+                "\n[info]Ingrese la ruta a escanear[/] (separar multiples con coma)",
+                console=console,
             )
             if ruta:
                 console.print("[info]Iniciando escaneo...[/]")
@@ -254,19 +261,32 @@ def main_interactivo() -> None:
             listar_escaneos()
 
         elif seleccion == 3:  # Ver detalle
-            esc_id = IntPrompt.ask("\nIngrese el ID del escaneo", console=console)
+            esc_id = int(
+                Prompt.ask(
+                    "\n[info]Ingrese el ID del escaneo[/]",
+                    console=console,
+                )
+            )
             obtener_escaneo_detalle(esc_id)
 
         elif seleccion == 4:  # Comparar
-            id1 = IntPrompt.ask("\nIngrese el ID del primer escaneo", console=console)
-            id2 = IntPrompt.ask("Ingrese el ID del segundo escaneo", console=console)
+            id1 = int(
+                Prompt.ask("\n[info]Ingrese el ID del primer escaneo[/]", console=console)
+            )
+            id2 = int(
+                Prompt.ask("[info]Ingrese el ID del segundo escaneo[/]", console=console)
+            )
             comparar_escaneos(id1, id2)
 
         elif seleccion == 5:  # Estadisticas
             mostrar_estadisticas()
 
         elif seleccion == 6:  # Exportar
-            esc_id = IntPrompt.ask("\nIngrese el ID del escaneo a exportar", console=console)
+            esc_id = int(
+                Prompt.ask(
+                    "\n[info]Ingrese el ID del escaneo a exportar[/]", console=console
+                )
+            )
             detalle = obtener_escaneo_detalle(esc_id)
             if detalle:
                 from detector_duplicados.exporter import exportar_resultados
@@ -274,7 +294,11 @@ def main_interactivo() -> None:
                 exportar_resultados(detalle, esc_id)
 
         elif seleccion == 7:  # Eliminar
-            esc_id = IntPrompt.ask("\nIngrese el ID del escaneo a eliminar", console=console)
+            esc_id = int(
+                Prompt.ask(
+                    "\n[info]Ingrese el ID del escaneo a eliminar[/]", console=console
+                )
+            )
             if eliminar_escaneo_cmd(esc_id):
                 console.print("[success]Escaneo eliminado exitosamente.[/]")
 
