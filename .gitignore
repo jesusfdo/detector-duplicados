@@ -7,10 +7,11 @@ build/
 *.egg
 
 # Virtualenv
+.venv/
 venv/
-.env
+ENV/
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
@@ -20,11 +21,20 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Backup del script original
+# Coverage
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Database & test data
+*.db
+*.txt
+2
+3
+
+# Backups & legacy
 Detector de duplicados.py.bak
+legacy/
 
-# Logs (si se crean manualmente)
+# Logs
 logs/
-
-# Datos de prueba
-test_data/

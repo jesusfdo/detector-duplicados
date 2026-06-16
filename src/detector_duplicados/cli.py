@@ -216,7 +216,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main_interactivo() -> None:
     """Modo interactivo con menu principal."""
     # Mostrar ayuda al inicio para usuarios no tecnicos
-    from .ui import mostrar_panel_ayuda
+    from detector_duplicados.ui import mostrar_panel_ayuda
 
     mostrar_panel_ayuda()
 
@@ -269,7 +269,7 @@ def main_interactivo() -> None:
             esc_id = IntPrompt.ask("\nIngrese el ID del escaneo a exportar", console=console)
             detalle = obtener_escaneo_detalle(esc_id)
             if detalle:
-                from .exporter import exportar_resultados
+                from detector_duplicados.exporter import exportar_resultados
 
                 exportar_resultados(detalle, esc_id)
 
@@ -322,7 +322,7 @@ def main() -> None:
     if args.export is not None:
         detalle = obtener_escaneo_detalle(args.export)
         if detalle:
-            from .exporter import exportar_resultados
+            from detector_duplicados.exporter import exportar_resultados
 
             exportar_resultados(detalle, args.export)
         return
@@ -332,7 +332,7 @@ def main() -> None:
         esc_id = int(args.cleanup)
         detalle = obtener_escaneo_detalle(esc_id)
         if detalle:
-            from .cleaner import dry_run_cleanup, ejecutar_cleanup
+            from detector_duplicados.cleaner import dry_run_cleanup, ejecutar_cleanup
 
             archivos_dup = detalle.get("confirmados", {})
 
@@ -376,7 +376,7 @@ def main() -> None:
     # Fase 4: --rollback
     if args.rollback is not None:
         accion_id = int(args.rollback)
-        from .db import create_connection, deshacer_accion
+        from detector_duplicados.db import create_connection, deshacer_accion
 
         conn = create_connection()
 
@@ -392,7 +392,7 @@ def main() -> None:
 
     # Fase 4: --list-rollback
     if args.list_rollback:
-        from .db import create_connection, obtener_rollback_disponible
+        from detector_duplicados.db import create_connection, obtener_rollback_disponible
 
         conn = create_connection()
 
@@ -426,7 +426,7 @@ def main() -> None:
 
     # Accion: watch (Fase 4)
     if args.watch:
-        from .watchdog import iniciar_watchdog
+        from detector_duplicados.watchdog import iniciar_watchdog
 
         console.print(f"[info]Iniciando Watchdog en {len(args.watch)} rutas...[/]")
         iniciar_watchdog(args.watch)
@@ -434,7 +434,7 @@ def main() -> None:
 
     # Accion: report (Fase 4)
     if args.report:
-        from .html_report import generar_reporte_desde_db, generar_reporte_html
+        from detector_duplicados.html_report import generar_reporte_desde_db, generar_reporte_html
 
         esc_id = int(args.report[0]) if args.report[0].isdigit() else None
         output_file = args.report[1] if len(args.report) > 1 else "detector_report.html"
