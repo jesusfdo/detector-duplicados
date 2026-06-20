@@ -17,15 +17,16 @@
 
 |||| Métrica | Valor | Estado |
 |||---|---|---|
-||| Version | 1.0.0 | ✅ Estable |
-||| Tests | 431 passing, 1 skipped | ✅ OK |
-||| Cobertura | 74% (1492 stmts, 388 sin cubrir) | ✅ Superado (objetivo 70%) |
-||| Ruff | ✅ 0 errores | ✅ Limpo |
-||| pyproject.toml | version 1.0.0 | ✅ |
-||| README.md | ✅ Actualizado con version final | ✅ |
-||| CHANGELOG.md | ✅ Keep a Changelog | ✅ |
-||| Dead code | ✅ Eliminado (run.py, src/detector.py) | ✅ |
-||| Build .exe | ✅ IMPORTS CORREGIDOS — artifact disponible | ✅ |
+| Version | 1.0.0 | ✅ Estable |
+| Tests | 431 passing, 1 skipped | ✅ OK |
+| Cobertura | 74% (1492 stmts, 388 sin cubrir) | ✅ Superado (objetivo 70%) |
+| Ruff | ✅ 0 errores | ✅ Limpo |
+| pyproject.toml | version 1.0.0 | ✅ |
+| README.md | ✅ Actualizado con version final | ✅ |
+| CHANGELOG.md | ✅ Keep a Changelog | ✅ |
+| Dead code | ✅ Eliminado (run.py, src/detector.py) | ✅ |
+| Build .exe | ✅ IMPORTS CORREGIDOS — artifact disponible | ✅ |
+| UI Interactiva | ✅ MENUS Y AYUDA CORREGIDOS — sin \n literales, opciones numeradas | ✅ |
 
 ### Notas de sesión final (2025-06-16 — Fase 7 completada)
 - **Tarea 1 (coverage):** COMPLETADA → 74% (objetivo 70%)
@@ -327,11 +328,59 @@ Tarea 7 (README final)
 
 ## Estado de tareas Fase 7 (Documentacion)
 
-|| Tarea | Estado | Notas |
-||---|---|---|
-|| 1 — ROADMAP.md | ✅ Actualizado | Fase 6 completa, Fase 7 agregada |
-|| 2 — CHANGELOG.md | ✅ Creado | Keep a Changelog format |
-|| 3 — README.md | ✅ Actualizado | Version 1.0.0, CLI, FAQ |
+||| Tarea | Estado | Notas |
+|||---|---|---|
+||| 1 — ROADMAP.md | ✅ Actualizado | Fase 6 completa, Fase 7 agregada |
+||| 2 — CHANGELOG.md | ✅ Creado | Keep a Changelog format |
+||| 3 — README.md | ✅ Actualizado | Version 1.0.0, CLI, FAQ |
+
+---
+
+## Sesion UI — Correcciones de Interfaz (2025-06-16)
+
+### Problemas reportados por el usuario
+1. **Menu interactivo sin numeros:** El menu principal no mostraba que numero correspondia a cada opcion
+2. **Cuadro de ayuda con caracteres \n literales:** Los saltos de linea se mostraban como `\n` en lugar de saltos de linea reales
+
+### Correcciones aplicadas
+1. **cli.py — Menu principal:** Se asegura que `mostrar_menu_principal()` use `enumerate(opciones, 1)` para mostrar opciones con numeros claros
+2. **ui.py — Cuadro de ayuda:** Se corrigieron los saltos de linea en `mostrar_panel_ayuda()` — reemplazados caracteres `\n` literales por saltos de linea reales
+3. **cli.py — Prompt.ask:** Se asegura que `Prompt.ask` use `choices=["1", "2", "3"...]` para validacion y display de opciones validas
+
+### Archivos modificados
+- `src/detector_duplicados/cli.py` — Menu numerado con Prompt.ask validado
+- `src/detector_duplicados/ui.py` — Panel de ayuda con saltos de linea correctos
+- `.github/workflows/build.yml` — Typo corregido (detector_duplications → detector_duplicados)
+- `.gitignore` — Agregadas reglas para ignorar .venv/, *.db, *.txt, etc.
+
+### Estado del build
+- Commit + push realizados a main
+- Build de GitHub Actions en ejecucion
+- Artifact .exe sera actualizado con los fixes de UI
+
+### Nota importante
+- El usuario NO descargara el .exe hasta que se completen todos los objetivos
+- Los cambios estan en el repositorio pero no se distribuyen via .exe hasta completar la sesion
+
+---
+
+---
+
+## Plan Sesion Proxima (Pendiente para mañana)
+
+### Objetivo 2: Exportacion a HTML Interactivo
+- **Estado:** ⏸️ POSPUESTO (Usuario considera que es una funcion compleja y poderosa, se hara en la proxima sesion)
+- **Descripcion:** Implementar una exportacion HTML interactiva potente y compleja.
+- **Prioridad:** Alta (siguiente objetivo tras completar la Fase 7)
+
+---
+
+## Plan Sesion Proxima (Pendiente para mañana)
+
+### Objetivo 2: Exportacion a HTML Interactivo
+- **Estado:** ⏸️ POSPUESTO (Usuario considera que es una funcion compleja y poderosa, se hara en la proxima sesion)
+- **Descripcion:** Implementar una exportacion HTML interactiva potente y compleja.
+- **Prioridad:** Alta (siguiente objetivo tras completar la Fase 7)
 
 ---
 
