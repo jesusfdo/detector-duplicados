@@ -17,7 +17,7 @@ import argparse
 import sys
 
 from rich import box
-from rich.prompt import IntPrompt, Prompt
+from rich.prompt import Prompt
 
 from detector_duplicados.config import PERFILES_PREDEFINIDOS
 from detector_duplicados.main import (
@@ -270,12 +270,8 @@ def main_interactivo() -> None:
             obtener_escaneo_detalle(esc_id)
 
         elif seleccion == 4:  # Comparar
-            id1 = int(
-                Prompt.ask("\n[info]Ingrese el ID del primer escaneo[/]", console=console)
-            )
-            id2 = int(
-                Prompt.ask("[info]Ingrese el ID del segundo escaneo[/]", console=console)
-            )
+            id1 = int(Prompt.ask("\n[info]Ingrese el ID del primer escaneo[/]", console=console))
+            id2 = int(Prompt.ask("[info]Ingrese el ID del segundo escaneo[/]", console=console))
             comparar_escaneos(id1, id2)
 
         elif seleccion == 5:  # Estadisticas
@@ -283,9 +279,7 @@ def main_interactivo() -> None:
 
         elif seleccion == 6:  # Exportar
             esc_id = int(
-                Prompt.ask(
-                    "\n[info]Ingrese el ID del escaneo a exportar[/]", console=console
-                )
+                Prompt.ask("\n[info]Ingrese el ID del escaneo a exportar[/]", console=console)
             )
             detalle = obtener_escaneo_detalle(esc_id)
             if detalle:
@@ -295,9 +289,7 @@ def main_interactivo() -> None:
 
         elif seleccion == 7:  # Eliminar
             esc_id = int(
-                Prompt.ask(
-                    "\n[info]Ingrese el ID del escaneo a eliminar[/]", console=console
-                )
+                Prompt.ask("\n[info]Ingrese el ID del escaneo a eliminar[/]", console=console)
             )
             if eliminar_escaneo_cmd(esc_id):
                 console.print("[success]Escaneo eliminado exitosamente.[/]")
@@ -362,9 +354,7 @@ def main() -> None:
 
             if args.dry_run:
                 resultado = dry_run_cleanup(archivos_dup, args.politica, args.profile)
-                console.print(
-                    f"\n[bold highlight]=== Dry Run: Politica '{args.politica}' ===[/]\n"
-                )
+                console.print(f"\n[bold highlight]=== Dry Run: Politica '{args.politica}' ===[/]\n")
                 console.print(f"  Total grupos: {resultado['total_duplicados']}")
                 console.print(f"  Total archivos: {resultado['total_archivos']}")
                 console.print(f"  Espacio total: {resultado['espacio_total']:,} bytes")

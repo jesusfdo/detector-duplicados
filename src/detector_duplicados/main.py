@@ -160,6 +160,21 @@ def run(
                 "carpetas_duplicadas": sospechosos,
             }
         )
+
+        # FASE 2.0: Generar y abrir HTML automáticamente
+        from .html_report import generar_reporte_html
+
+        reporte_html = generar_reporte_html(
+            confirmados,
+            sospechosos,
+            total_archivos_global,
+            total_carpetas_global,
+            nombre_reporte="resultado.html",
+            abrir_navegador=True,
+        )
+        if reporte_html:
+            mostrar_estado_mensaje(f"Reporte generado: {reporte_html}", "success")
+
         # Mostrar resultados con UI Rich
         mostrar_resultados_tabla(
             confirmados,

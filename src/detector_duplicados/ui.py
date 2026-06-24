@@ -5,10 +5,9 @@ menus interactivos y mensajes de estado.
 Fase 3: Tablas interactivas, filtros, seleccion, acciones.
 """
 
-
 from rich import box
 from rich.panel import Panel
-from rich.prompt import Confirm, Prompt, IntPrompt
+from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
@@ -43,24 +42,37 @@ def mostrar_panel_ayuda() -> None:
         ("", ""),
         ("  1. Elige una de las opciones del menu principal", "info"),
         ("", ""),
-        ("  2. Si eliges 'Escanear carpetas', escribe la ruta de la carpeta "
-         "donde tienes tus archivos", "warning"),
+        (
+            "  2. Si eliges 'Escanear carpetas', escribe la ruta de la carpeta "
+            "donde tienes tus archivos",
+            "warning",
+        ),
         ("", ""),
         ("     Ejemplo: /home/tu-nombre/Documents", "path"),
         ("", ""),
-        ("  3. La herramienta encontrara archivos duplicados y te mostrara "
-         "los resultados en tablas", "info"),
+        (
+            "  3. La herramienta encontrara archivos duplicados y te mostrara "
+            "los resultados en tablas",
+            "info",
+        ),
         ("", ""),
-        ("  4. Podras ver el detalle de cada escaneo, comparar escaneos anteriores "
-         "o exportar los resultados a un archivo de texto", "info"),
+        (
+            "  4. Podras ver el detalle de cada escaneo, comparar escaneos anteriores "
+            "o exportar los resultados a un archivo de texto",
+            "info",
+        ),
         ("", ""),
         ("  5. Tambien podras eliminar duplicados de forma segura con el cleanup", "success"),
         ("", ""),
-        ("  6. Si no estas seguro, siempre puedes ver las estadisticas "
-         "de la base de datos", "info"),
+        (
+            "  6. Si no estas seguro, siempre puedes ver las estadisticas de la base de datos",
+            "info",
+        ),
         ("", ""),
-        ("  7. Para salir del programa, selecciona la opcion "
-         "'Salir' en cualquier momento", "error"),
+        (
+            "  7. Para salir del programa, selecciona la opcion 'Salir' en cualquier momento",
+            "error",
+        ),
     ]
 
     help_text = Text()

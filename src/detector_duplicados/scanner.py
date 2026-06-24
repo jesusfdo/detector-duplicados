@@ -10,10 +10,31 @@ import logging
 import os
 from pathlib import Path
 
-from .config import DEFAULT_EXCLUSIONS
+from .config import DEFAULT_EXCLUSIONS, SUBTITLE_EXTENSIONS, VIDEO_EXTENSIONS
 
 logger = logging.getLogger(__name__)
-CHUNK_SIZE = 8192  # Lee en chunks de 8KB para archivos grandes
+CHUNK_SIZE = 65536  # 64KB — chunk más grande para mejor rendimiento
+
+
+def _es_subtitulo_excluido(nombre: str, extension: str, archivos_vista_previa: set) -> bool:
+    """Determina si un archivo de subtítulos debe ser excluido.
+
+    Un subtítulo se excluye si existe un archivo de video con el mismo
+    nombre base en la lista de archivos vista previa.
+
+    Args:
+        nombre: Nombre del archivo sin extensión.
+        extension: Extensión del archivo (ej: '.srt').
+        archivos_vista_previa: Conjunto de nombres base de archivos de video vistos.
+
+    Returns:
+        True si el subtítulo debe ser excluido.
+    """
+    if extension.lower() not in SUBTITLE_EXTENSIONS:
+        return False
+
+    nombre_base = nombre.lower()
+    return nombre_base in archivos_vista_previa
 
 
 def validar_ruta(ruta: str) -> tuple[bool, str]:
@@ -71,10 +92,14 @@ def _walk_directory(
     bar_task: object | None,
     archivos: list,
     carpetas: list,
+    archivos_video_nombres: set | None = None,
 ) -> None:
     """Recorre un directorio recursivamente, aplicando exclusiones.
 
     Los directorios excluidos se saltan completamente (no se visita su subtree).
+
+    FASE 2.0: Soporta exclusión automática de subtítulos cuando existe
+    un video con el mismo nombre base.
 
     Args:
         ruta: Ruta del directorio actual.
@@ -84,6 +109,7 @@ def _walk_directory(
         bar_task: Tarea de progreso de Rich (opcional).
         archivos: Lista acumuladora de archivos encontrados.
         carpetas: Lista acumuladora de carpetas encontradas.
+        archivos_video_nombres: Nombres base de videos para exclusión de subtítulos.
     """
     try:
         elementos = list(ruta.iterdir())
@@ -119,7 +145,18 @@ def _walk_directory(
                     carpetas,
                 )
             elif elemento.is_file():
-                if extensiones and elemento.suffix.lower() not in extensiones:
+                nombre_base = elemento.stem.lower()
+                extension = elemento.suffix.lower()
+
+                # FASE 2.0: Excluir subtítulos si existe video con mismo nombre base
+                if archivos_video_nombres and _es_subtitulo_excluido(
+                    nombre_base, extension, archivos_video_nombres
+                ):
+                    if barra and bar_task:
+                        barra.update(bar_task, advance=1)
+                    continue
+
+                if extensiones and extension not in extensiones:
                     if barra and bar_task:
                         barra.update(bar_task, advance=1)
                     continue
@@ -147,11 +184,14 @@ def recopilar_info(
     extensiones: set | None = None,
     exclusiones: frozenset[str] | None = None,
     barra: object | None = None,
-) -> tuple[list[dict[str, str]], list[dict[str, str]], int, int, int, list[str]]:
+) -> tuple[list[dict[str, str | int]], list[dict[str, str]], int, int, int, list[str]]:
     """Escanea múltiples rutas y recopila información de archivos y carpetas.
 
     Equivalente a recopilar_info() del script original, pero soporta
     múltiples rutas, exclusiones configurables y barra de progreso Rich.
+
+    FASE 2.0: Incluye exclusión automática de subtítulos cuando existe
+    un video con el mismo nombre base.
 
     Args:
         rutas: Lista de rutas a escanear.
@@ -170,6 +210,19 @@ def recopilar_info(
     carpetas: list[dict[str, str]] = []
     rutas_no_escaneadas: list[str] = []
 
+    # Primera pasada: recolectar nombres base de videos para exclusión de subtítulos
+    archivos_video_nombres: set[str] = set()
+    for ruta in rutas:
+        ruta_path = Path(ruta)
+        if ruta_path.exists() and ruta_path.is_dir():
+            for archivo in ruta_path.rglob("*"):
+                if archivo.is_file():
+                    nombre_base = archivo.stem.lower()
+                    extension = archivo.suffix.lower()
+                    if extension in VIDEO_EXTENSIONS:
+                        archivos_video_nombres.add(nombre_base)
+
+    # Segunda pasada: recopilar archivos excluyendo subtítulos duplicados
     for ruta in rutas:
         ruta_path = Path(ruta)
         try:
@@ -202,6 +255,7 @@ def recopilar_info(
                 bar_task,
                 archivos,
                 carpetas,
+                archivos_video_nombres,  # Pasar nombres de videos para exclusión
             )
 
         except (PermissionError, OSError) as e:
@@ -219,8 +273,7 @@ def recopilar_info(
 def calcular_hash_sha256(ruta_archivo: str) -> str:
     """Calcula el hash SHA256 de un archivo.
 
-    Lee el archivo en chunks para manejar archivos grandes sin consumir
-    memoria excesiva.
+    FASE 2.0: Usa un chunk de 64KB para mejor rendimiento en archivos grandes.
 
     Args:
         ruta_archivo: Ruta al archivo.
@@ -243,6 +296,48 @@ def calcular_hash_sha256(ruta_archivo: str) -> str:
     except (PermissionError, OSError) as e:
         logger.warning("No se pudo leer %s: %s", ruta_archivo, e)
         raise
+
+
+def calcular_hash_grupo_con_thread(
+    archivos: list[dict[str, str | int]],
+    max_workers: int = 4,
+) -> dict[str, str]:
+    """Calcula hashes SHA256 en paralelo con ThreadPoolExecutor.
+
+    FASE 2.0: Optimización de rendimiento usando hilos para
+    calcular hashes simultáneamente en archivos independientes.
+
+    Args:
+        archivos: Lista de dicts con clave 'ruta'.
+        max_workers: Número máximo de hilos (default 4).
+
+    Returns:
+        Dict: {ruta: hash_sha256}
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    hashes: dict[str, str] = {}
+
+    def hash_one(archivo: dict) -> tuple[str, str | None]:
+        """Calcula el hash de un solo archivo."""
+        ruta = archivo["ruta"]
+        try:
+            h = calcular_hash_sha256(ruta)
+            return (ruta, h)
+        except OSError as e:
+            logger.warning("No se pudo hash %s: %s", ruta, e)
+            return (ruta, None)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(hash_one, arch): arch for arch in archivos}
+        for future in as_completed(futures):
+            ruta, h = future.result()
+            if h is not None:
+                hashes[ruta] = h
+            else:
+                hashes[ruta] = None  # type: ignore
+
+    return hashes
 
 
 def agrupar_por_tamanio(

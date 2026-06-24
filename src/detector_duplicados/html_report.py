@@ -5,8 +5,6 @@ ubicaciones directamente desde el navegador.
 """
 
 import datetime
-import csv
-import io
 import platform
 import webbrowser
 from pathlib import Path
@@ -384,7 +382,8 @@ def generar_reporte_html(
         </div>
 
         <div class="warning">
-            <strong>⚠️ Este reporte es solo informativo.</strong> El usuario debe decidir manualmente qué eliminar.
+            <strong>⚠️ Este reporte es solo informativo.</strong>
+            El usuario debe decidir manualmente qué eliminar.
             Cada resultado tiene un botón "📂 Abrir ubicación" para abrir la carpeta directamente.
         </div>
 
@@ -504,7 +503,7 @@ def generar_reporte_html(
                         const tbody = table.querySelector('tbody');
                         const msg = document.createElement('tr');
                         msg.className = 'no-results';
-                        msg.innerHTML = '<td colspan="5">No se encontraron archivos con extensión ' + ext + '</td>';
+                        msg.innerHTML = '<td colspan="5">No se encontraron archivos con extensión ' + ext + '</td>'; // noqa: E501
                         tbody.appendChild(msg);
                     }});
                 }}
@@ -722,7 +721,7 @@ def _generar_opciones_extensiones(archivos_data):
     extensiones = set()
     for info in archivos_data.values():
         for ruta in info["rutas"]:
-            _, ext = Path(ruta).suffix.rsplit('.', 1)
+            _, ext = Path(ruta).suffix.rsplit(".", 1)
             if ext:
                 extensiones.add(f".{ext}")
 

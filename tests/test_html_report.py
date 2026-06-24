@@ -5,7 +5,7 @@ FASE 3: Validación de la nueva funcionalidad de exportación HTML.
 
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 
 class TestGenerarReporteHTML(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
         self.assertTrue(os.path.exists(result))
@@ -56,10 +56,10 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
         self.assertIn("<html", content)
@@ -76,10 +76,10 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
         self.assertIn('id="search"', content)
@@ -95,10 +95,10 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
         self.assertIn('id="theme-toggle"', content)
@@ -115,10 +115,10 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
         self.assertIn('id="export-csv"', content)
@@ -134,13 +134,13 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
-        self.assertIn("id=\"ext-filter\"", content)
+        self.assertIn('id="ext-filter"', content)
         self.assertIn("Todas las extensiones", content)
         self.assertIn(".pdf", content)
         self.assertIn(".jpg", content)
@@ -155,10 +155,10 @@ class TestGenerarReporteHTML(unittest.TestCase):
             total_archivos=150,
             total_carpetas=45,
             nombre_reporte="/tmp/test_html_report.html",
-            abrir_navegador=False
+            abrir_navegador=False,
         )
 
-        with open(result, "r", encoding="utf-8") as f:
+        with open(result, encoding="utf-8") as f:
             content = f.read()
 
         self.assertIn("data-col", content)
@@ -171,7 +171,6 @@ class TestGenerarReporteDesdeDB(unittest.TestCase):
     def test_genera_reporte_desde_db(self):
         """Verificar que la función genera un reporte desde la base de datos."""
         import sys
-        from unittest.mock import MagicMock, patch
 
         # Crear mock del módulo db
         mock_db = MagicMock()
@@ -179,7 +178,11 @@ class TestGenerarReporteDesdeDB(unittest.TestCase):
         mock_db.obtener_escaneo.return_value = {"total_archivos": 100, "total_carpetas": 30}
         mock_db.obtener_archivos_escaneo.return_value = []
         mock_db.obtener_duplicados.return_value = [
-            {"rutas": "/home/user/archivo1.txt; /home/user/archivo1_copy.txt", "tamanio_bytes": 1024, "hash_sha256": "abc123"}
+            {
+                "rutas": "/home/user/archivo1.txt; /home/user/archivo1_copy.txt",
+                "tamanio_bytes": 1024,
+                "hash_sha256": "abc123",
+            }
         ]
 
         # Inyectar mock en sys.modules antes de importar html_report
@@ -188,14 +191,12 @@ class TestGenerarReporteDesdeDB(unittest.TestCase):
         from detector_duplicados.html_report import generar_reporte_desde_db
 
         result = generar_reporte_desde_db(
-            escaneo_id=1,
-            nombre_reporte="/tmp/test_html_report_db.html",
-            abrir_navegador=False
+            escaneo_id=1, nombre_reporte="/tmp/test_html_report_db.html", abrir_navegador=False
         )
 
         self.assertTrue(result)
         self.assertIn("/tmp/test_html_report_db.html", result)
-        
+
         # Restaurar módulo original
         del sys.modules["detector_duplicados.db"]
 
