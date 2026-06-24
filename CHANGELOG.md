@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Objetivo 2: Exportación a HTML Interactivo**
+  - Búsqueda en tiempo real
+  - Ordenamiento por columnas (click en headers)
+  - Toggle Dark/Light mode
+  - Expandir/Colapsar grupos de duplicados
+  - Copiar rutas al portapapeles (botón por fila)
+  - Filtro dinámico por extensión
+  - Exportación a CSV desde el navegador
+
 ## [1.0.0] - 2025-06-16
 
 ### Changed

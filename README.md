@@ -80,8 +80,23 @@ detector --export 1 /tmp/report.txt     # Exportar a TXT
 detector --export 1 /tmp/report.csv     # Exportar a CSV
 detector --export 1 /tmp/report.json    # Exportar a JSON
 
-# Reporte HTML
-detector --report 1 /tmp/report.html    # Generar reporte HTML
+## Reporte HTML Interactivo
+
+```bash
+detector --report 1 /tmp/report.html    # Genera reporte interactivo con todas las funcionalidades
+```
+
+El reporte HTML generado es autocontenido y tiene las siguientes funcionalidades interactivas:
+
+- 🔍 **Búsqueda en tiempo real:** Filtra filas instantáneamente por nombre o ruta.
+- ↕ **Ordenamiento por columnas:** Click en cualquier header para sortear asc/desc.
+- 🌙 **Toggle Dark/Light:** Invierte la paleta de colores para mejor legibilidad.
+- ▶ **Expandir/Colapsar:** Click en un grupo para ver/ocultar las rutas de los duplicados.
+- 📋 **Copiar al portapapeles:** Botón "📋 Copiar" en cada fila para copiar la ruta completa.
+- 📁 **Filtro por extensión:** Dropdown para ver solo `.mp4`, `.pdf`, `.jpg`, etc.
+- 📊 **Exportar CSV:** Genera un archivo CSV con los datos para abrir en Excel/spreadsheets.
+
+> **Nota:** El reporte es 100% funcional sin conexión a internet. Todo el CSS y JS está inline.
 
 # Watchdog (monitoreo en tiempo real)
 detector --watch /ruta1 /ruta2          # Monitorear rutas
