@@ -67,11 +67,7 @@
 - [x] Ejecucion completa de 439 tests (0 regresiones)
 - [x] Commit + push exitoso
 
-### Objetivo 5: Release v1.0.0 (SIGUIENTE)
-- [ ] Escalar version en `pyproject.toml` de `1.0.0` a `1.0.0` (confirmar si hay cambios o mantener)
-- [ ] Crear tag `v1.0.0` y release en GitHub
-- [ ] Actualizar ROADMAP.md para cerrar proyecto o definir nuevas fases
-- [ ] Generar CHANGELOG.md con version `1.0.0` formal
+✅ **Objetivo 5: Release v1.0.0** — TAG v1.0.0 CREADO Y PUSH ECHO.
 
 ### Objetivo 6: Generar ejecutable .exe (posible, depende de tu interes)
 - [ ] PyInstaller con `--onedir` o `--onefile`
