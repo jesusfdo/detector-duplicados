@@ -13,20 +13,20 @@
 
 ---
 
-## Estado actual (ultima actualización: 2025-06-16)
+## Estado actual (ultima actualización: 2026-06-22)
 
-|||| Métrica | Valor | Estado |
-|||---|---|---|
-| Version | 1.0.0 | ✅ Estable |
-| Tests | 431 passing, 1 skipped | ✅ OK |
-| Cobertura | 74% (1492 stmts, 388 sin cubrir) | ✅ Superado (objetivo 70%) |
-| Ruff | ✅ 0 errores | ✅ Limpo |
-| pyproject.toml | version 1.0.0 | ✅ |
-| README.md | ✅ Actualizado con version final | ✅ |
-| CHANGELOG.md | ✅ Keep a Changelog | ✅ |
-| Dead code | ✅ Eliminado (run.py, src/detector.py) | ✅ |
-| Build .exe | ✅ IMPORTS CORREGIDOS — artifact disponible | ✅ |
-| UI Interactiva | ✅ MENUS Y AYUDA CORREGIDOS — sin \n literales, opciones numeradas | ✅ |
+||||| Metrica | Valor | Estado |
+||||---|---|---|
+|| Version | 1.0.0 | ✅ Estable |
+|| Tests | 431 passing, 1 skipped | ✅ OK |
+|| Cobertura | 58% (1570 stmts, 659 sin cubrir) | ⚠️ Deterioro (desde 74% en Fase 6) |
+|| Ruff | ⚠️ 15 errores | ⚠️ (0 errores en Fase 6, se reintrodujeron) |
+|| pyproject.toml | version 1.0.0 | ✅ |
+|| README.md | ✅ Actualizado con version final | ✅ |
+|| CHANGELOG.md | ✅ Keep a Changelog | ✅ |
+|| Dead code | ✅ Eliminado (run.py, src/detector.py) | ✅ |
+|| Build .exe | ✅ IMPORTS CORREGIDOS — artifact disponible | ✅ |
+|| UI Interactiva | ✅ MENUS Y AYUDA CORREGIDOS — sin \\n literales, opciones numeradas | ✅ |
 
 ### Notas de sesión final (2025-06-16 — Fase 7 completada)
 - **Tarea 1 (coverage):** COMPLETADA → 74% (objetivo 70%)
@@ -369,19 +369,72 @@ Tarea 7 (README final)
 ## Plan Sesion Proxima (Pendiente para mañana)
 
 ### Objetivo 2: Exportacion a HTML Interactivo
-- **Estado:** ⏸️ POSPUESTO (Usuario considera que es una funcion compleja y poderosa, se hara en la proxima sesion)
-- **Descripcion:** Implementar una exportacion HTML interactiva potente y compleja.
-- **Prioridad:** Alta (siguiente objetivo tras completar la Fase 7)
+- **Estado:** ✅ COMPLETADO (2025-06-17)
+- **Fase 1:** Búsqueda en tiempo real ✅, toggle dark/light ✅, ordenamiento por columnas ✅, copiar al portapapeles ✅, expandir/grupos ✅
+- **Fase 2:** Filtro por extensión ✅, exportación CSV ✅, extensiones dinámicas ✅
+- **Fase 3:** Tests y docs (pendiente para próxima sesión)
+- **Archivos modificados:** `html_report.py`, `ROADMAP.md`, `.gitignore`
+- **Commit + push:** exitoso (059b69e)
 
 ---
 
 ## Plan Sesion Proxima (Pendiente para mañana)
 
 ### Objetivo 2: Exportacion a HTML Interactivo
-- **Estado:** ⏸️ POSPUESTO (Usuario considera que es una funcion compleja y poderosa, se hara en la proxima sesion)
-- **Descripcion:** Implementar una exportacion HTML interactiva potente y compleja.
-- **Prioridad:** Alta (siguiente objetivo tras completar la Fase 7)
+- **Estado:** ✅ COMPLETADO (2025-06-17)
+- **Fase 1:** Búsqueda en tiempo real ✅, toggle dark/light ✅, ordenamiento por columnas ✅, copiar al portapapeles ✅, expandir/grupos ✅
+- **Fase 2:** Filtro por extensión ✅, exportación CSV ✅, extensiones dinámicas ✅
+- **Fase 3:** Tests y docs (pendiente para próxima sesión)
+- **Archivos modificados:** `html_report.py`, `ROADMAP.md`, `.gitignore`
+- **Commit + push:** exitoso (059b69e)
 
 ---
 
 > **Regla de oro:** Si no ayuda a encontrar o gestionar duplicados de archivos locales, no entra al roadmap.
+
+---
+
+## Cierre de sesion 2026-06-22 — Auditoria de Skills
+
+### Resumen
+Se realizo una auditoria completa del stack de skills de Hermes (fase 2).
+No se realizaron cambios de codigo en el proyecto Detector de Duplicados.
+
+### Hallazgos de regresion en el proyecto
+Al verificar el estado actual del proyecto durante la auditoria de skills, se detecto:
+
+1. **Cobertura deteriorada:** Bajó de 74% (Fase 6) a 58% actual.
+   - 1570 sentencias, 659 sin cubrir
+   - ui.py: 55%, watchdog.py: 63%
+   - Causa probable: cambios en codigo sin tests correspondientes
+
+2. **Ruff reintrodujo errores:** 15 errores (0 en Fase 6).
+   - 12 fixables automaticamente, 2 requiring unsafe fixes
+   - Causa probable: cambios sin ruff check
+
+3. **Archivos modificados no commit:**
+   - src/detector_duplicados/config.py
+   - src/detector_duplicados/duper.py
+   - src/detector_duplicados/html_report.py
+   - src/detector_duplicados/main.py
+   - src/detector_duplicados/scanner.py
+   - tests/test_cleaner_and_report.py
+
+4. **Archivos sin track:**
+   - detector-duplicados.spec (spec de PyInstaller)
+   - install.sh (script de instalacion)
+   - resultado.html (archivo de testing)
+
+### Acciones tomadas
+- ROADMAP.md actualizado con metrics reales (coverage 58%, ruff 15 errores)
+- INFORME.md actualizado con estado real del proyecto
+- ESTADO.md creado con diagnostico tecnico
+- PROXIMO_PASO.md creado con siguiente tarea
+- HANDOFF.md creado para transferencia de contexto
+
+### Decisiones
+- NO se realizaron cambios de codigo en esta sesion (solo documentacion)
+- El Objetivo 2 (HTML Export) sigue siendo la siguiente tarea prioritaria
+- Se recomienda corregir coverage y ruff ANTES de iniciar Objetivo 2
+
+---
