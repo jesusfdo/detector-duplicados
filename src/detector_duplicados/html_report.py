@@ -5,8 +5,8 @@ ubicaciones directamente desde el navegador.
 """
 
 import datetime
-import json
-import os
+import csv
+import io
 import platform
 import webbrowser
 from pathlib import Path
@@ -17,10 +17,8 @@ def _archivo_a_ruta_file(ruta: str) -> str:
     sistema = platform.system()
 
     if sistema == "Windows":
-        # Windows: file:///C:/path/to/file
         return f"file:///{ruta}"
     else:
-        # Linux/Mac: file:///home/user/path
         return f"file://{ruta}"
 
 
@@ -40,6 +38,8 @@ def generar_reporte_html(
         - Dark/Light toggle
         - Expandir/Colapsar grupos
         - Copiar rutas al portapapeles
+        - Filtro por extensión
+        - Exportar a CSV
 
     Args:
         archivos_duplicados: Diccionario con los grupos de duplicados de archivos.
@@ -171,7 +171,16 @@ def generar_reporte_html(
             color: var(--text-muted);
         }}
 
-        .theme-toggle {{
+        .filter-select {{
+            padding: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 14px;
+        }}
+
+        .theme-toggle, .export-btn {{
             padding: 10px 20px;
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -181,7 +190,7 @@ def generar_reporte_html(
             font-size: 14px;
         }}
 
-        .theme-toggle:hover {{
+        .theme-toggle:hover, .export-btn:hover {{
             border-color: var(--accent);
         }}
 
@@ -339,8 +348,15 @@ def generar_reporte_html(
                 class="search-box"
                 placeholder="🔍 Buscar por nombre o ruta..."
             />
+            <select id="ext-filter" class="filter-select">
+                <option value="">📁 Todas las extensiones</option>
+                {_generar_opciones_extensiones(archivos_data)}
+            </select>
             <button id="theme-toggle" class="theme-toggle">
                 🌙 Cambiar tema
+            </button>
+            <button id="export-csv" class="export-btn">
+                📊 Exportar CSV
             </button>
         </div>
 
@@ -448,9 +464,6 @@ def generar_reporte_html(
                 }});
 
                 // Mostrar mensaje si no hay resultados
-                const existingMsg = table?.querySelector('.no-results');
-                if (existingMsg) existingMsg.remove();
-
                 if (visibleCount === 0) {{
                     tables.forEach(table => {{
                         const tbody = table.querySelector('tbody');
@@ -460,6 +473,68 @@ def generar_reporte_html(
                         tbody.appendChild(msg);
                     }});
                 }}
+            }});
+
+            // === EXTENSION FILTER ===
+            const extFilter = document.getElementById('ext-filter');
+            extFilter.addEventListener('change', function() {{
+                const ext = this.value;
+                let visibleCount = 0;
+
+                if (ext === '') {{
+                    tables.forEach(table => {{
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => row.style.display = '');
+                    }});
+                    return;
+                }}
+
+                tables.forEach(table => {{
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {{
+                        const text = row.textContent.toLowerCase();
+                        const hasExt = text.includes(ext);
+                        row.style.display = hasExt ? '' : 'none';
+                        if (hasExt) visibleCount++;
+                    }});
+                }});
+
+                if (visibleCount === 0) {{
+                    tables.forEach(table => {{
+                        const tbody = table.querySelector('tbody');
+                        const msg = document.createElement('tr');
+                        msg.className = 'no-results';
+                        msg.innerHTML = '<td colspan="5">No se encontraron archivos con extensión ' + ext + '</td>';
+                        tbody.appendChild(msg);
+                    }});
+                }}
+            }});
+
+            // === EXPORT CSV ===
+            document.getElementById('export-csv').addEventListener('click', function() {{
+                const csvData = [];
+                const headers = ['Grupo', 'Tamaño', 'Copias', 'Espacio Recuperable', 'Rutas'];
+                csvData.push(headers);
+
+                tables.forEach(table => {{
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {{
+                        const cells = Array.from(row.children);
+                        const rowData = cells.map(cell => cell.textContent.trim());
+                        if (rowData.length > 1) {{
+                            csvData.push(rowData);
+                        }}
+                    }});
+                }});
+
+                const csvContent = csvData.map(row => row.join(',')).join('\\n');
+                const blob = new Blob([csvContent], {{ type: 'text/csv' }});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'detector_duplicados.csv';
+                a.click();
+                URL.revokeObjectURL(url);
             }});
 
             // === SORTING ===
@@ -486,7 +561,7 @@ def generar_reporte_html(
                             const bNum = parseFloat(bVal);
 
                             if (!isNaN(aNum) && !isNaN(bNum)) {{
-                                return newDir === 'asc' ? aNum - bNum : bNum - aNum;
+                                return newDir === 'asc' ? aNum - bNum : bNum - bNum;
                             }}
                             return newDir === 'asc'
                                 ? aVal.localeCompare(bVal)
@@ -519,7 +594,6 @@ def generar_reporte_html(
                             }}, 2000);
                         }});
                     }} else {{
-                        // Fallback para navegadores sin clipboard API
                         const textarea = document.createElement('textarea');
                         textarea.value = path;
                         document.body.appendChild(textarea);
@@ -641,6 +715,21 @@ def _generar_filas_carpetas(carpetas_data):
             </tr>
             """
     return html
+
+
+def _generar_opciones_extensiones(archivos_data):
+    """Genera opciones de filtro por extensión para el HTML."""
+    extensiones = set()
+    for info in archivos_data.values():
+        for ruta in info["rutas"]:
+            _, ext = Path(ruta).suffix.rsplit('.', 1)
+            if ext:
+                extensiones.add(f".{ext}")
+
+    opciones = ""
+    for ext in sorted(extensiones):
+        opciones += f'<option value="{ext}">{ext}</option>'
+    return opciones
 
 
 def generar_reporte_desde_db(
