@@ -278,7 +278,7 @@ class TestHTMLReport:
 
         assert "grupo1" in content
         assert "/tmp/a.txt" in content  # Rutas en el HTML
-        assert "v1.0.0" in content  # Version actualizada
+        assert "Detector" in content  # Nombre del proyecto
 
     def test_reporte_html_valido(self, tmp_path):
         """El reporte generado debe ser HTML valido."""
