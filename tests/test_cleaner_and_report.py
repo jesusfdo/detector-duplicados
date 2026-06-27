@@ -1,4 +1,5 @@
 """Tests de cobertura para cleaner.py y html_report.py (Fase 5)."""
+
 import os
 from datetime import datetime
 
@@ -37,6 +38,7 @@ class TestCleanerScoring:
     def test_archivo_en_home_baja_puntuacion(self):
         """Archivos en home directo tienen puntaje medio."""
         import os
+
         home = os.path.expanduser("~")
         archivo = {"ruta": f"{home}/test.txt", "tamanio": 100, "mtime": 0}
         score = calcular_puntuacion(archivo)
@@ -84,7 +86,11 @@ class TestCleanerScoring:
         """Sugerencias deben estar ordenadas de mayor a menor riesgo."""
         archivos = [
             {"ruta": "/home/old.txt", "tamanio": 100, "mtime": 0},  # Riesgo alto
-            {"ruta": "/home/new.txt", "tamanio": 1000, "mtime": datetime.now().timestamp()},  # Riesgo bajo
+            {
+                "ruta": "/home/new.txt",
+                "tamanio": 1000,
+                "mtime": datetime.now().timestamp(),
+            },  # Riesgo bajo
             {"ruta": "/home/med.txt", "tamanio": 500, "mtime": 0},  # Riesgo medio
         ]
         sugerencias = sugerir_eliminado(archivos, umbral_riesgo=20)
@@ -101,7 +107,9 @@ class TestCleanerScoring:
         ]
         sugerencias_altas = sugerir_eliminado(archivos, umbral_riesgo=80)
         sugerencias_bajas = sugerir_eliminado(archivos, umbral_riesgo=30)
-        assert len(sugerencias_altas["sugeridos_borrar"]) <= len(sugerencias_bajas["sugeridos_borrar"])
+        assert len(sugerencias_altas["sugeridos_borrar"]) <= len(
+            sugerencias_bajas["sugeridos_borrar"]
+        )
 
 
 class TestPolicyEngine:
@@ -298,9 +306,7 @@ class TestHTMLReport:
         """Generar reporte con nombre personalizado."""
         output = tmp_path / "my_custom_report.html"
 
-        result = generar_reporte_html(
-            {}, {}, 0, 0, str(output)
-        )
+        result = generar_reporte_html({}, {}, 0, 0, str(output))
 
         assert result == str(output)
         assert os.path.exists(output)

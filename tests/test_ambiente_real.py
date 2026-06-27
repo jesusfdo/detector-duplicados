@@ -1,4 +1,5 @@
 """Script para crear un entorno de prueba real con archivos y carpetas."""
+
 import os
 import random
 import shutil
@@ -8,9 +9,21 @@ import string
 def generar_nombre_carpeta():
     """Genera un nombre de carpeta realista."""
     nombres = [
-        "Documentos", "Fotos", "Videos", "Musica", "Proyectos",
-        "Descargas", "Trabajo", "Personal", "Backup", "Temp",
-        "Imágenes", "Vídeos", "Áudio", "Escritorio", "Configuración",
+        "Documentos",
+        "Fotos",
+        "Videos",
+        "Musica",
+        "Proyectos",
+        "Descargas",
+        "Trabajo",
+        "Personal",
+        "Backup",
+        "Temp",
+        "Imágenes",
+        "Vídeos",
+        "Áudio",
+        "Escritorio",
+        "Configuración",
     ]
     return random.choice(nombres) + f"_{random.randint(1, 99)}"
 
@@ -70,8 +83,12 @@ def crear_entorno_prueba(ruta_base="/tmp/test_detector_duplicados"):
         nombre = generar_nombre_archivo()
         ruta = os.path.join(carpeta, nombre)
         ext = os.path.splitext(nombre)[1][1:]
-        contenido = ''.join(random.choices(string.ascii_letters + string.digits + ' \n', k=random.randint(100, 5000)))
-        with open(ruta, 'w') as f:
+        contenido = "".join(
+            random.choices(
+                string.ascii_letters + string.digits + " \n", k=random.randint(100, 5000)
+            )
+        )
+        with open(ruta, "w") as f:
             f.write(contenido)
         archivos_creados.append(ruta)
 
@@ -86,19 +103,22 @@ def crear_entorno_prueba(ruta_base="/tmp/test_detector_duplicados"):
 
         # Asegurar que el archivo original exista
         if not os.path.exists(ruta_origen):
-            contenido = ''.join(random.choices(string.ascii_letters + string.digits + ' \n', k=random.randint(100, 5000)))
-            with open(ruta_origen, 'w') as f:
+            contenido = "".join(
+                random.choices(
+                    string.ascii_letters + string.digits + " \n", k=random.randint(100, 5000)
+                )
+            )
+            with open(ruta_origen, "w") as f:
                 f.write(contenido)
 
         # Leer el contenido original
-        with open(ruta_origen, 'rb') as f:
+        with open(ruta_origen, "rb") as f:
             contenido_original = f.read()
 
         # Crear copias en otras carpetas
         num_copias = random.randint(2, 4)
         carpetas_destino = random.sample(
-            [c for c in carpetas if c != carpeta_origen],
-            min(num_copias, len(carpetas) - 1)
+            [c for c in carpetas if c != carpeta_origen], min(num_copias, len(carpetas) - 1)
         )
 
         for destino in carpetas_destino:
@@ -108,7 +128,7 @@ def crear_entorno_prueba(ruta_base="/tmp/test_detector_duplicados"):
                 nombre_destino = f"backup_{nombre_origen}"  # Nombre diferente
 
             ruta_destino = os.path.join(destino, nombre_destino)
-            with open(ruta_destino, 'wb') as f:
+            with open(ruta_destino, "wb") as f:
                 f.write(contenido_original)
             archivos_creados.append(ruta_destino)
 

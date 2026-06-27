@@ -152,13 +152,17 @@ class WatchdogMonitor:
                     if not ruta.exists():
                         continue
 
-                    # Escanear archivos nuevos/modificados
-                    for archivo in ruta.rglob("*"):
-                        if archivo.is_file():
-                            # Verificar si es duplicado
-                            file_hash = self._verificar_duplicados(archivo)
-                            if file_hash is not None:
-                                self._alertar_duplicado(file_hash, self.index[file_hash])
+                    try:
+                        # Escanear archivos nuevos/modificados
+                        for archivo in ruta.rglob("*"):
+                            if archivo.is_file():
+                                # Verificar si es duplicado
+                                file_hash = self._verificar_duplicados(archivo)
+                                if file_hash is not None:
+                                    self._alertar_duplicado(file_hash, self.index[file_hash])
+                    except (PermissionError, OSError) as e:
+                        console.print(f"[warning]Error escaneando ruta {ruta}: {e}[/]")
+                        continue
 
                 # Esperar antes de la siguiente verificacion
                 time.sleep(self.interval)

@@ -122,10 +122,15 @@ def mostrar_resultados_tabla(
     resumen.append(f"{total_carpetas}\n", style="success")
     if total_archivos > 0:
         resumen.append("Tamaño total: ", style="info")
-        resumen.append(
-            f"{sum(a.get('tamanio', 0) for a in archivos_duplicados.values())} bytes\n",
-            style="success",
-        )
+        # Soportar ambos formatos: valores dict o list (preciso)
+        total_size = 0
+        for v in archivos_duplicados.values():
+            if isinstance(v, list):
+                # Formato preciso: lista de rutas, sin tamanio
+                continue
+            elif isinstance(v, dict):
+                total_size += v.get("tamanio", 0)
+        resumen.append(f"{total_size:,} bytes\n", style="success")
     console.print(Panel(resumen, title="Resumen", border_style="info", box=box.ROUNDED))
 
     # Tabla de duplicados de archivos
@@ -138,16 +143,23 @@ def mostrar_resultados_tabla(
         table.add_column("Ruta", style="path", max_width=40)
 
         grupo_num = 1
-        for _nombre, info in archivos_duplicados.items():
-            rutas = info.get("rutas", [])
-            tamanio = info.get("tamanio", 0)
-            hash_val = info.get("hash", "N/A")
+        for key, info in archivos_duplicados.items():
+            # Soportar ambos formatos: {key: {"rutas": [...], "tamanio": ...}} (rapido)
+            # y {hash: [ruta1, ruta2, ...]} (preciso)
+            if isinstance(info, list):
+                rutas = info
+                tamanio = 0
+                hash_val = key[:16] + "..."
+            else:
+                rutas = info.get("rutas", [])
+                tamanio = info.get("tamanio", 0)
+                hash_val = info.get("hash", key[:16] + "...")
 
             for ruta in rutas:
                 table.add_row(
                     f"[highlight]{grupo_num}[/]",
                     f"[success]{tamanio:,} bytes[/]",
-                    f"[hash]{hash_val[:16]}...[/]",
+                    f"[hash]{hash_val}[/]",
                     f"[path]{ruta}[/]",
                 )
             grupo_num += 1
@@ -189,15 +201,25 @@ def mostrar_arbol_resultados(archivos_duplicados: dict) -> None:
 
     for nombre, info in archivos_duplicados.items():
         group_node = tree.add(f"[duplicate]Grupo: {nombre}[/]")
-        for ruta in info.get("rutas", []):
+        if isinstance(info, list):
+            # Formato preciso: lista de rutas
+            tamanio = 0
+            for ruta in info:
+                group_node.add(f"[path]{ruta}[/] ({tamanio} bytes)")
+        else:
+            # Formato rapido: dict con "rutas", "tamanio"
             tamanio = info.get("tamanio", 0)
-            group_node.add(f"[path]{ruta}[/] ({tamanio} bytes)")
+            for ruta in info.get("rutas", []):
+                group_node.add(f"[path]{ruta}[/] ({tamanio} bytes)")
 
     console.print(tree)
 
 
 def menu_interactivo(opciones: list) -> int:
-    """Muestra un menu interactivo y devuelve la seleccion del usuario."""
+    """Muestra un menu interactivo y devuelve la seleccion del usuario.
+
+    Maneja EOF (Ctrl+D) retornando 0 (salir).
+    """
     console.print("\n[bold highlight]Seleccione una opcion:[/]")
     for i, opcion in enumerate(opciones, 1):
         console.print(f"  [info]{i}[/]. {opcion}")
@@ -211,6 +233,10 @@ def menu_interactivo(opciones: list) -> int:
             console.print("[warning]Por favor seleccione un numero valido.[/]")
         except ValueError:
             console.print("[warning]Entrada invalida. Ingrese un numero.[/]")
+        except EOFError:
+            # Ctrl+D / fin de entrada → salir silenciosamente
+            console.print("[info]Entrada finalizada (EOF). Saliendo...[/]")
+            return 0
 
 
 def mostrar_estado_mensaje(mensaje: str, tipo: str = "info"):

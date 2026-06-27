@@ -1,4 +1,5 @@
 """Tests para policies.py y exporter.py."""
+
 import csv
 import json
 import os
@@ -71,9 +72,7 @@ class TestPoliciesDirect:
             "hash": "abc",
         }
 
-        resultado = aplicar_politica(
-            grupo, "keep_in_path", rutas_protegidas=["/media/"]
-        )
+        resultado = aplicar_politica(grupo, "keep_in_path", rutas_protegidas=["/media/"])
 
         assert "/media/b.txt" in resultado["mantener"]
 
@@ -266,7 +265,13 @@ class TestExporterCSV:
         """Exportar CSV con duplicados vacio no crash."""
         from detector_duplicados.exporter import _exportar_csv
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "modo": "rapido",
+        }
         duplicados = []
 
         output = tmp_path / "report.csv"
@@ -280,7 +285,14 @@ class TestExporterCSV:
         from detector_duplicados.exporter import _exportar_csv
 
         # El formato real requiere: confirmado (bool), hash_sha256, tamanio_bytes, cantidad, rutas (separada por "; ")
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
         duplicados = [
             {
                 "confirmado": True,
@@ -307,7 +319,13 @@ class TestExporterCSV:
         """El CSV exportado debe ser parseable."""
         from detector_duplicados.exporter import _exportar_csv
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "modo": "rapido",
+        }
 
         output = tmp_path / "report.csv"
         result = _exportar_csv(escaneo, [], str(output))
@@ -326,7 +344,14 @@ class TestExporterJSON:
         """Exportar JSON con duplicados vacio no crash."""
         from detector_duplicados.exporter import _exportar_json
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
 
         output = tmp_path / "report.json"
         result = _exportar_json(escaneo, [], str(output))
@@ -343,7 +368,14 @@ class TestExporterJSON:
         """Exportar JSON con duplicados reales."""
         from detector_duplicados.exporter import _exportar_json
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
         duplicados = [
             {
                 "confirmado": True,
@@ -369,7 +401,14 @@ class TestExporterJSON:
         """El JSON exportado debe ser JSON valido."""
         from detector_duplicados.exporter import _exportar_json
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
 
         output = tmp_path / "report.json"
         result = _exportar_json(escaneo, [], str(output))
@@ -393,16 +432,31 @@ class TestExporterCombined:
         )
 
         archivos_dup = {"grupo1": ["/tmp/a.txt", "/tmp/b.txt"]}
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
         duplicados = [
-            {"confirmado": True, "hash_sha256": "abc", "tamanio_bytes": 100, "cantidad": 2, "rutas": "/tmp/a.txt; /tmp/b.txt"}
+            {
+                "confirmado": True,
+                "hash_sha256": "abc",
+                "tamanio_bytes": 100,
+                "cantidad": 2,
+                "rutas": "/tmp/a.txt; /tmp/b.txt",
+            }
         ]
 
         txt_output = tmp_path / "report.txt"
         csv_output = tmp_path / "report.csv"
         json_output = tmp_path / "report.json"
 
-        guardar_resultados_txt({"archivos_duplicados": archivos_dup, "carpetas_duplicadas": {}}, str(txt_output))
+        guardar_resultados_txt(
+            {"archivos_duplicados": archivos_dup, "carpetas_duplicadas": {}}, str(txt_output)
+        )
         _exportar_csv(escaneo, duplicados, str(csv_output))
         _exportar_json(escaneo, duplicados, str(json_output))
 
@@ -414,7 +468,14 @@ class TestExporterCombined:
         """Exportar con rutas que contienen caracteres especiales."""
         from detector_duplicados.exporter import _exportar_json
 
-        escaneo = {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 10, "total_carpetas": 5, "modo": "rapido"}
+        escaneo = {
+            "id": 1,
+            "fecha": "2026-01-01",
+            "rutas": ["/tmp"],
+            "total_archivos": 10,
+            "total_carpetas": 5,
+            "modo": "rapido",
+        }
         duplicados = [
             {
                 "confirmado": True,
@@ -440,8 +501,23 @@ class TestExportarResultados:
         from detector_duplicados.exporter import exportar_resultados
 
         detalle = {
-            "escaneo": {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 100, "total_carpetas": 10, "modo": "rapido"},
-            "duplicados": [{"confirmado": True, "hash_sha256": "abc", "tamanio_bytes": 100, "cantidad": 2, "rutas": "/tmp/a.txt; /tmp/b.txt"}],
+            "escaneo": {
+                "id": 1,
+                "fecha": "2026-01-01",
+                "rutas": ["/tmp"],
+                "total_archivos": 100,
+                "total_carpetas": 10,
+                "modo": "rapido",
+            },
+            "duplicados": [
+                {
+                    "confirmado": True,
+                    "hash_sha256": "abc",
+                    "tamanio_bytes": 100,
+                    "cantidad": 2,
+                    "rutas": "/tmp/a.txt; /tmp/b.txt",
+                }
+            ],
         }
 
         output = tmp_path / "result.txt"
@@ -455,8 +531,23 @@ class TestExportarResultados:
         from detector_duplicados.exporter import exportar_resultados
 
         detalle = {
-            "escaneo": {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 100, "total_carpetas": 10, "modo": "rapido"},
-            "duplicados": [{"confirmado": True, "hash_sha256": "abc", "tamanio_bytes": 100, "cantidad": 2, "rutas": "/tmp/a.txt; /tmp/b.txt"}],
+            "escaneo": {
+                "id": 1,
+                "fecha": "2026-01-01",
+                "rutas": ["/tmp"],
+                "total_archivos": 100,
+                "total_carpetas": 10,
+                "modo": "rapido",
+            },
+            "duplicados": [
+                {
+                    "confirmado": True,
+                    "hash_sha256": "abc",
+                    "tamanio_bytes": 100,
+                    "cantidad": 2,
+                    "rutas": "/tmp/a.txt; /tmp/b.txt",
+                }
+            ],
         }
 
         output = tmp_path / "result.csv"
@@ -470,8 +561,23 @@ class TestExportarResultados:
         from detector_duplicados.exporter import exportar_resultados
 
         detalle = {
-            "escaneo": {"id": 1, "fecha": "2026-01-01", "rutas": ["/tmp"], "total_archivos": 100, "total_carpetas": 10, "modo": "rapido"},
-            "duplicados": [{"confirmado": True, "hash_sha256": "abc", "tamanio_bytes": 100, "cantidad": 2, "rutas": "/tmp/a.txt; /tmp/b.txt"}],
+            "escaneo": {
+                "id": 1,
+                "fecha": "2026-01-01",
+                "rutas": ["/tmp"],
+                "total_archivos": 100,
+                "total_carpetas": 10,
+                "modo": "rapido",
+            },
+            "duplicados": [
+                {
+                    "confirmado": True,
+                    "hash_sha256": "abc",
+                    "tamanio_bytes": 100,
+                    "cantidad": 2,
+                    "rutas": "/tmp/a.txt; /tmp/b.txt",
+                }
+            ],
         }
 
         output = tmp_path / "result.json"

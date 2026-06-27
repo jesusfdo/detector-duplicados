@@ -182,9 +182,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--report",
         dest="report",
-        nargs=2,
-        metavar=("ID", "ARCHIVO"),
-        help="Generar reporte HTML autocontenido. Usa: detector --report <ID> <archivo_salida>",
+        nargs="?",
+        const="0",
+        metavar="ID",
+        help="Generar reporte HTML autocontenido. Usa: detector --report <ID>. "
+             "El archivo se guardará como 'detector_report.html'.",
     )
 
     parser.add_argument(
@@ -450,8 +452,8 @@ def main() -> None:
     if args.report:
         from detector_duplicados.html_report import generar_reporte_desde_db, generar_reporte_html
 
-        esc_id = int(args.report[0]) if args.report[0].isdigit() else None
-        output_file = args.report[1] if len(args.report) > 1 else "detector_report.html"
+        esc_id = int(args.report)
+        output_file = "detector_report.html"
         if esc_id:
             detalle = obtener_escaneo_detalle(esc_id)
             if detalle:

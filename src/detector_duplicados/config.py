@@ -17,6 +17,14 @@ EXTENSIONES_MULTIMEDIA: Final[frozenset[str]] = frozenset(
     {".mp4", ".mkv", ".avi", ".mpg", ".vob", ".dat", ".rmw"}
 )
 
+# Extensiones de subtítulos — se excluyen si existe un video con mismo nombre base
+SUBTITLE_EXTENSIONS: Final[frozenset[str]] = frozenset({".srt", ".ass", ".vtt", ".sub", ".ssa"})
+
+# Extensiones de video (para detectar si existe un video)
+VIDEO_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {".mp4", ".mkv", ".avi", ".mov", ".wmv", ".mpg", ".mpeg", ".webm", ".flv", ".m4v", ".ts"}
+)
+
 # Configuración de UI
 
 PANEL_TITLE: Final[str] = "Bienvenido"

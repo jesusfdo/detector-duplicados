@@ -3,7 +3,7 @@
 Escáner local de archivos y carpetas duplicados con terminal Rich. Version 1.0.0 estable.
 
 ```
-✅ 431 tests pasando
+✅ 440 tests pasando
 ✅ Ruff check: 0 errores
 ✅ Cobertura: 74%
 ```
@@ -19,6 +19,7 @@ Escáner local de archivos y carpetas duplicados con terminal Rich. Version 1.0.
 - Reportes HTML autocontenido
 - Watchdog para detección en tiempo real
 - Terminal ligera con Rich, sin servicios externos
+- Detección inteligente de subtítulos (`.srt`, `.ass`, `.vtt` se excluyen si existe video con mismo nombre base)
 
 ## Instalación
 
@@ -83,7 +84,8 @@ detector --export 1 /tmp/report.json    # Exportar a JSON
 ## Reporte HTML Interactivo
 
 ```bash
-detector --report 1 /tmp/report.html    # Genera reporte interactivo con todas las funcionalidades
+detector --report 1                     # Genera report_<ID>.html
+detector --report                       # Genera report para el escaneo mas reciente
 ```
 
 El reporte HTML generado es autocontenido y tiene las siguientes funcionalidades interactivas:

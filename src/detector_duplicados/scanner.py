@@ -179,6 +179,44 @@ def _walk_directory(
             continue
 
 
+def _count_all(base: Path) -> int:
+    """Cuenta todos los archivos y carpetas en un arbol usando os.scandir."""
+    count = 0
+    stack: list[Path] = [base]
+    while stack:
+        dirpath = stack.pop()
+        try:
+            with os.scandir(dirpath) as it:
+                for entry in it:
+                    count += 1  # este elemento
+                    if entry.is_dir():
+                        stack.append(Path(entry.path))
+        except (PermissionError, OSError):
+            pass
+    return count
+
+
+def _collect_video_names(base: Path) -> set:
+    """Recolecta nombres base de videos usando os.scandir (no rglob)."""
+    nombres: set[str] = set()
+    stack: list[Path] = [base]
+    while stack:
+        dirpath = stack.pop()
+        try:
+            with os.scandir(dirpath) as it:
+                for entry in it:
+                    if entry.is_dir():
+                        stack.append(Path(entry.path))
+                    elif entry.is_file():
+                        path_obj = Path(entry.path)
+                        ext = path_obj.suffix.lower()
+                        if ext in VIDEO_EXTENSIONS:
+                            nombres.add(path_obj.stem.lower())
+        except (PermissionError, OSError):
+            pass
+    return nombres
+
+
 def recopilar_info(
     rutas: list[str],
     extensiones: set | None = None,
@@ -210,17 +248,12 @@ def recopilar_info(
     carpetas: list[dict[str, str]] = []
     rutas_no_escaneadas: list[str] = []
 
-    # Primera pasada: recolectar nombres base de videos para exclusión de subtítulos
+    # Primera pasada: recolectar nombres base de videos usando os.scandir
     archivos_video_nombres: set[str] = set()
     for ruta in rutas:
         ruta_path = Path(ruta)
         if ruta_path.exists() and ruta_path.is_dir():
-            for archivo in ruta_path.rglob("*"):
-                if archivo.is_file():
-                    nombre_base = archivo.stem.lower()
-                    extension = archivo.suffix.lower()
-                    if extension in VIDEO_EXTENSIONS:
-                        archivos_video_nombres.add(nombre_base)
+            archivos_video_nombres.update(_collect_video_names(ruta_path))
 
     # Segunda pasada: recopilar archivos excluyendo subtítulos duplicados
     for ruta in rutas:
@@ -241,8 +274,8 @@ def recopilar_info(
                 rutas_no_escaneadas.append(ruta)
                 continue
 
-            # Contar elementos totales para la barra de progreso
-            total_elementos = sum(1 for _ in ruta_path.rglob("*"))
+            # Contar elementos totales para la barra de progreso usando os.scandir
+            total_elementos = _count_all(ruta_path)
             bar_task = (
                 barra.add_task(f"Escaneando {ruta}...", total=total_elementos) if barra else None
             )
@@ -255,7 +288,7 @@ def recopilar_info(
                 bar_task,
                 archivos,
                 carpetas,
-                archivos_video_nombres,  # Pasar nombres de videos para exclusión
+                archivos_video_nombres,  # Pasar nombres de videos para exclusion
             )
 
         except (PermissionError, OSError) as e:

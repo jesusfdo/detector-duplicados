@@ -29,13 +29,13 @@ def encontrar_duplicados(
     duplicados_confirmados: dict = {}
 
     if confirmar_por_hash:
-        from .scanner import agrupar_por_tamanio, calcular_hash_grupo
+        from .scanner import agrupar_por_tamanio, calcular_hash_grupo_con_thread
 
         grupos = agrupar_por_tamanio(archivos)
         if grupos:
             print(f"\n[#00FF41] Calculando hashes de {len(grupos)} grupo(s) de mismo tamaño...")
             for _tam, archivos_con_tam in grupos.items():
-                hashes = calcular_hash_grupo(archivos_con_tam)
+                hashes = calcular_hash_grupo_con_thread(archivos_con_tam)
                 hash_groups: dict[str, list[str]] = {}
                 for ruta, h in hashes.items():
                     if h is None:
@@ -86,7 +86,7 @@ def encontrar_duplicados(
         nombre: rutas for nombre, rutas in carpetas_temp.items() if len(rutas) > 1
     }
 
-     # Fusionar carpetas duplicadas con sospechosos (ambos son "no confirmados")
+    # Fusionar carpetas duplicadas con sospechosos (ambos son "no confirmados")
     sospechosos.update(carpetas_duplicadas)
 
     def _count_rutas(item: dict | list) -> int:

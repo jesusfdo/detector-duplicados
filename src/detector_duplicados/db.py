@@ -33,10 +33,15 @@ def _get_default_db_path() -> str:
       1. Variable de entorno DETECTOR_DB_PATH
       2. XDG_DATA_HOME (Linux/Mac) o AppData (Windows)
       3. Fallback a directorio actual (para desarrollo local)
+
+    Siempre crea el directorio padre antes de retornar la ruta.
     """
     # 1. Prioridad absoluta: variable de entorno
     db_env = os.environ.get("DETECTOR_DB_PATH")
     if db_env:
+        # Asegurar que el directorio padre existe
+        parent = pathlib.Path(db_env).parent
+        parent.mkdir(parents=True, exist_ok=True)
         return db_env
 
     # 2. Prioridad estandar (XDG / AppData)
@@ -64,14 +69,56 @@ def create_connection(db_path: str | None = None) -> sqlite3.Connection:
 
     Returns:
         Objeto sqlite3.Connection con row_factory configurado.
+
+    Raises:
+        sqlite3.DatabaseError: Si la DB esta corrupta, muestra un
+            mensaje amigable y retorna None (sin crash).
     """
     if db_path is None:
         db_path = _get_default_db_path()
 
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        # Verificar que la DB no este corrupta con un PRAGMA quick
+        integrity = conn.execute("PRAGMA integrity_check").fetchone()
+        if integrity and integrity[0] != "ok":
+            print(
+                "\n[red]⚠️  La base de datos parece corrupta.[/]\n"
+                "  Ruta: [path]{}[/]\n"
+                "  Detalle: {}"
+                "\n[red]Se intentara una reparacion automatica...[/]\n".format(
+                    db_path, integrity[0]
+                )
+            )
+            # Intentar reparacion: renombrar y crear nueva
+            backup_path = db_path + ".corrupt"
+            try:
+                os.rename(db_path, backup_path)
+                print(
+                    f"[green]✅ DB original renombrada a {backup_path}[/]\n"
+                    "[green]✅ Nueva base de datos creada.[/]\n"
+                    "[yellow]Perdida de datos: los escaneos anteriores no se podran recuperar.[/]"
+                )
+            except OSError as e:
+                print(
+                    f"[red]❌ No se pudo renombrar la DB corrupta: {e}[/]\n"
+                    "[yellow]Por favor elimine o mueva el archivo manualmente.[/]"
+                )
+                raise
+            # Re-conectar con la nueva DB
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
+    except sqlite3.DatabaseError as e:
+        print(
+            f"\n[red]⚠️  Error de base de datos:[/]\n"
+            f"  Ruta: [path]{db_path}[/]\n"
+            f"  Detalle: {e}\n"
+            "[yellow]Por favor elimine o mueva el archivo y vuelva a intentarlo.[/]"
+        )
+        raise
 
 
 def create_tables(conn: sqlite3.Connection) -> None:
@@ -248,15 +295,26 @@ def guardar_grupos_duplicados(
             """INSERT INTO grupos_duplicados
                (hash_sha256, tamanio_bytes, cantidad, escaneo_id, confirmado, creado)
                VALUES (?, ?, ?, ?, 1, ?)""",
-            (h, tamanio, len(rutas), escaneo_id, now),
+            (h, tamanio or 0, len(rutas), escaneo_id, now),
         )
 
     for _nombre, rutas in sospechosos.items():
+        # Intentar obtener tamanio desde la tabla archivos
+        tamanio = None
+        for r in rutas:
+            fila = conn.execute(
+                "SELECT tamanio_bytes FROM archivos WHERE escaneo_id=? AND ruta=?",
+                (escaneo_id, r),
+            ).fetchone()
+            if fila:
+                tamanio = fila["tamanio_bytes"]
+                break
+
         conn.execute(
             """INSERT INTO grupos_duplicados
                (hash_sha256, tamanio_bytes, cantidad, escaneo_id, confirmado, creado)
-               VALUES (NULL, NULL, ?, ?, 0, ?)""",
-            (len(rutas), escaneo_id, now),
+               VALUES (NULL, ?, ?, ?, 0, ?)""",
+            (tamanio, len(rutas), escaneo_id, now),
         )
 
     conn.commit()
@@ -553,9 +611,7 @@ def deshacer_accion(conn: sqlite3.Connection, accion_id: int) -> bool:
     Returns:
         True si se desho, False si no se encontro o es irreversible.
     """
-    accion = conn.execute(
-        "SELECT * FROM log_acciones WHERE id = ?", (accion_id,)
-    ).fetchone()
+    accion = conn.execute("SELECT * FROM log_acciones WHERE id = ?", (accion_id,)).fetchone()
 
     if not accion:
         return False
@@ -573,6 +629,7 @@ def deshacer_accion(conn: sqlite3.Connection, accion_id: int) -> bool:
     try:
         if os.path.exists(destino):
             import shutil
+
             shutil.move(destino, origen)
             return True
         else:

@@ -1,4 +1,5 @@
 """Tests de cobertura Fase 5 -- cli.py, cleaner.py, exporter.py, policies.py, watchdog.py, html_report.py, db.py, config.py."""
+
 import csv
 import json
 import os
@@ -107,8 +108,15 @@ class TestBuildParser:
         from detector_duplicados.cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args(["--report", "1", "/tmp/out.html"])
-        assert args.report == ["1", "/tmp/out.html"]
+        args = parser.parse_args(["--report", "1"])
+        assert args.report == "1"
+
+    def test_parser_report_no_id(self):
+        from detector_duplicados.cli import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["--report"])
+        assert args.report == "0"
 
     def test_parser_extensiones(self):
         from detector_duplicados.cli import build_parser
@@ -126,20 +134,31 @@ class TestBuildParser:
 
 
 class TestCliMainPaths:
-
     """Tests que verifican parser args directamente -- las funciones
     se importan dentro de main() por lo que no se pueden mockear a nivel modulo."""
 
     def _make_mock_args(self, **kwargs):
         defaults = {
-            "rutas": "/tmp/test", "scan": None, "list": False,
-            "stats": False, "detail": None, "compare": None,
-            "delete": None, "export": None, "cleanup": None,
-            "profile": "default", "politica": "keep_one_copy",
-            "modo_cleanup": "papelera", "dry_run": False,
-            "rollback": None, "list_rollback": False,
-            "watch": None, "report": None, "modo": "preciso",
-            "extensiones": None, "no_save": False,
+            "rutas": "/tmp/test",
+            "scan": None,
+            "list": False,
+            "stats": False,
+            "detail": None,
+            "compare": None,
+            "delete": None,
+            "export": None,
+            "cleanup": None,
+            "profile": "default",
+            "politica": "keep_one_copy",
+            "modo_cleanup": "papelera",
+            "dry_run": False,
+            "rollback": None,
+            "list_rollback": False,
+            "watch": None,
+            "report": None,
+            "modo": "preciso",
+            "extensiones": None,
+            "no_save": False,
         }
         defaults.update(kwargs)
         return MagicMock(**defaults)
@@ -147,6 +166,7 @@ class TestCliMainPaths:
     def test_main_list_action(self, capsys):
         """Verificar que --list activa el path correcto del parser."""
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--list"])
         assert args.list is True
@@ -154,6 +174,7 @@ class TestCliMainPaths:
 
     def test_main_detail_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--detail", "42"])
         assert args.detail == 42
@@ -161,36 +182,42 @@ class TestCliMainPaths:
 
     def test_main_compare_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--compare", "1", "2"])
         assert args.compare == [1, 2]
 
     def test_main_delete_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--delete", "3"])
         assert args.delete == 3
 
     def test_main_export_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--export", "5"])
         assert args.export == 5
 
     def test_main_watch_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--watch", "/tmp/a", "/tmp/b"])
         assert args.watch == ["/tmp/a", "/tmp/b"]
 
     def test_main_report_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
-        args = parser.parse_args(["--report", "1", "/tmp/out.html"])
-        assert args.report == ["1", "/tmp/out.html"]
+        args = parser.parse_args(["--report", "1"])
+        assert args.report == "1"
 
     def test_main_cleanup_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         # cleanup con ID
         args1 = parser.parse_args(["--cleanup", "1"])
@@ -201,6 +228,7 @@ class TestCliMainPaths:
 
     def test_main_list_rollback_action(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["--list-rollback"])
         assert args.list_rollback is True
@@ -208,6 +236,7 @@ class TestCliMainPaths:
     def test_main_scan_with_extensiones(self, capsys):
         """Verificar parsing de extensiones."""
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "-x", ".mp4,.mkv"])
         assert args.extensiones == ".mp4,.mkv"
@@ -215,45 +244,53 @@ class TestCliMainPaths:
 
     def test_main_scan_no_save(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--no-save"])
         assert args.no_save is True
 
     def test_main_scan_with_mode(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "-m", "rapido"])
         assert args.modo == "rapido"
 
     def test_main_scan_with_profile(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--profile", "agresivo"])
         assert args.profile == "agresivo"
 
     def test_main_scan_with_politica(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--politica", "keep_newest"])
         assert args.politica == "keep_newest"
 
     def test_main_scan_with_modo_cleanup(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--modo-cleanup", "renombrar"])
         assert args.modo_cleanup == "renombrar"
 
     def test_main_scan_with_dry_run(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--dry-run"])
         assert args.dry_run is True
 
     def test_main_scan_with_rollback(self, capsys):
         from detector_duplicados.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["/tmp/test", "--rollback"])
         assert args.rollback == 1
+
 
 class TestMainInteractivo:
     """Test menu_interactivo and main_interactivo flow."""
@@ -953,9 +990,7 @@ class TestDbRollback:
         conn = create_connection(str(db))
         create_tables(conn)
 
-        registrar_accion(
-            conn, "mover", "/tmp/origen.txt", "/tmp/destino.txt", 1, True
-        )
+        registrar_accion(conn, "mover", "/tmp/origen.txt", "/tmp/destino.txt", 1, True)
 
         # Deshacer -- puede fallar si archivos no existen, pero no debe hacer excepcion
         try:

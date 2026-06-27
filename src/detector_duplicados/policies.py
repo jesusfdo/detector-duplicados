@@ -186,7 +186,7 @@ class KeepInPathPolicy(DuplicadoPolicy):
             "accion": "eliminar",
             "eliminar": rutas_inseguras,
             "mantener": rutas_seguras,
-            "motivo": f"Se mantienen {len(rutas_seguras)} copias en rutas protegidas, se eliminan {len(rutas_inseguras)} en rutas no protegidas."  # noqa: E501
+            "motivo": f"Se mantienen {len(rutas_seguras)} copias en rutas protegidas, se eliminan {len(rutas_inseguras)} en rutas no protegidas.",  # noqa: E501
         }
 
 

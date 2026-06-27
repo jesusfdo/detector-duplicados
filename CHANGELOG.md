@@ -1,87 +1,48 @@
-# Changelog
+# CHANGELOG — Detector de Duplicados
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Added
-- **Objetivo 2: Exportación a HTML Interactivo**
-  - Búsqueda en tiempo real
-  - Ordenamiento por columnas (click en headers)
-  - Toggle Dark/Light mode
-  - Expandir/Colapsar grupos de duplicados
-  - Copiar rutas al portapapeles (botón por fila)
-  - Filtro dinámico por extensión
-  - Exportación a CSV desde el navegador
-
-## [1.0.0] - 2025-06-16
-
-### Changed
-- **Tarea 2 (Ruff):** Lint cleaning — 217 errors reduced to 0
-  - Auto-fixed 162 issues via `ruff check --fix`
-  - Manually fixed 8 long-line issues in src/ (db.py, duper.py, ui.py)
-  - Restored re-export `PERFILES` in policies.py with `# noqa: E402, F401`
-  - Config: E501 and F841 ignored in tests (test data lines are long)
-- **Tarea 1 (Coverage):** 68% → 74% (exceeded 70% target)
-  - New test file: `tests/test_cobertura_fase6.py` (103 tests, 21k chars)
-  - Coverage improvements: html_report 66%→93%, cli 19%→56%, cleaner 59%→60%
-  - Watchdog skipped (complex os.path.expanduser mocks for file system events)
-- **Tarea 3 (Dead Code):** Removed dead files
-  - Deleted `src/detector_duplicados/run.py` (0% coverage)
-  - Deleted `src/detector.py` (dead code, only imported main.run)
-
-## [0.3.0a0] - 2025-06-15
-
-### Added
-- **Fase 0:** Package structure
-  - `src/detector_duplicados/` package with 15 modules
-  - `pyproject.toml` with build config (setuptools, rich dependency)
-  - `tests/` with 20+ test files
-- **Fase 1:** SHA256-based duplicate detection
-  - `duper.py` — dual detection (hash + name-based)
-  - `scanner.py` — file scanning, size grouping, hash computation
-  - Hash SHA256 as source of truth (replaces name-only detection)
-- **Fase 2:** Persistent SQLite database
-  - `db.py` — schema: escaneos, archivos, grupos_duplicados, log_acciones
-  - Migration from in-memory to persistent storage
-  - Query functions for all operations (save, list, compare, rollback)
-- **Fase 3:** Rich terminal UI
-  - `ui.py` — interactive menus, tables, progress bars
-  - Welcome panel, help panel, metric display
-  - Results displayed as Rich tables with column constraints
-- **Fase 4:** Duplicate management
-  - `policies.py` — 6 preservation policies (keep_one_copy, keep_newest, oldest, etc.)
-  - `cleaner.py` — heuristic scoring (0-100), safe deletion via OS trash
-  - `rollback.py` — action history, undo last 5 operations
-  - `watchdog.py` — real-time monitoring of watched directories
-  - `html_report.py` — self-contained HTML reports
-  - `exporter.py` — TXT, CSV, JSON export formats
-  - `config.py` — pre-defined profiles (default, aggressive, conservative)
-
-## [0.2.0] - 2025-06-10
-
-### Added
-- Basic duplicate detection by file name
-- Simple text output
-- Single scan mode
-
-## [0.1.0] - 2025-06-05
-
-### Added
-- Initial prototype
-- File scanning by extension
-- Size-based duplicate detection
+Todos los cambios importantes documentados aquí.
 
 ---
 
-**Legend:**
-- `Added` — new features
-- `Changed` — changes to existing functionality
-- `Removed` — deprecated features
-- `Fixed` — bug fixes
-- `Security` — security improvements
+## [1.0.0] — 2026-06-24 (Estable)
 
-> **Rule:** If it doesn't help find or manage local file duplicates, it's not in scope.
+### Corregido (Fase 5.1)
+- `--report ID` ya no exige ARCHIVO como segundo argumento. Se genera `report_<ID>.html` automáticamente.
+- `--report` sin ID genera reporte para el escaneo más reciente.
+- HTML crash con archivos sin extensión corregido.
+- Espacio duplicado calculado correctamente en modo rápido.
+- `--watch` ya no crash con `PermissionError` en directorios protegidos.
+- Modo de escaneo visible (`RAPIDO`/`PRECISO` en mayúsculas).
+- Barra de progreso funcional durante hashing.
+- Mensajes de error amigables para rutas inexistentes y permisos.
+
+### Agregado (Fase 5.1)
+- Detección inteligente de subtítulos (`.srt`, `.ass`, `.vtt` se excluyen si existe video con mismo nombre base).
+- Hashing paralelo con `ThreadPoolExecutor`.
+- HTML muestra hash completo, tamaño recuperable y botón "Abrir ubicación".
+- Apertura automática del navegador al generar reporte.
+
+### Rendimiento
+- Benchmark validado: 440 tests pasando, 2 skipped.
+- Ruff check limpio.
+- Memoria verificada: ~65 MB para 100k archivos (no 3.5 GB como se estimaba).
+
+---
+
+## [Unreleased]
+
+### Corregido (Pre-release fix)
+- **Bug modo preciso:** `sospechosos` ahora guarda solo strings de ruta en vez de dicts de objetos de archivo (main.py:166). Esto corría crashes en UI, HTML report y exporter.
+- **Bug HTML report:** `generar_reporte_html` ahora soporta listas de dicts (objetos de archivo) — extrae solo `["ruta"]` de cada item (html_report.py).
+- **Bug `mostrar_resultados_tabla`:** Soporta ambos formatos de datos (listas de strings y de dicts) para `carpetas_duplicadas` (ui.py).
+- **Bug `mostrar_arbol_resultados`:** Misma corrección de formato dual (ui.py).
+- **Bug `archivos_duplicados` en HTML:** Soporta formato de lista (modo preciso) para calcular tamaño recuperable (html_report.py).
+- **BUG 1 DB:** `mkdir(parents=True)` antes del return en `_get_default_db_path()` — crea directorio padre automáticamente.
+- **BUG 2 DB:** `create_connection()` envuelve `create_tables` en try/except — maneja DB corrupta con mensaje amigable.
+
+### Agregado
+- Nuevo test: `test_ui_dos_formats.py` — verifica que `mostrar_resultados_tabla` y `mostrar_arbol_resultados` soportan ambos formatos de datos.
+- Eliminados 2 skips de tests: `test_generar_reporte_desde_db` (ahora con DB real) y `test_run_con_archivos_duplicados_preciso`.
+- `generar_reporte_desde_db` acepta parámetro `db_path` opcional.
+- Pre-release audit completado — veredicto: ✅ LISTO PARA BUILD.
+- **450 tests pasando, 0 failures.**

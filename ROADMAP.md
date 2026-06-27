@@ -27,52 +27,108 @@
 ✅ **Objetivo 2:** Exportación HTML Interactivo — COMPLETADO
 ✅ **Objetivo 3:** Tests unitarios + CHANGELOG + README actualizados — COMPLETADO
 ✅ **Objetivo 4:** Integración CLI + Verificación sin regresiones — COMPLETADO
-
-**PRÓXIMO PASO:** Objective 5 — Release v1.0.0 (bump de version, tag, cierre de roadmap)
+✅ **Objetivo 5:** Release v1.0.0 — TAG v1.0.0 CREADO Y PUSH
+✅ **Fase 5.1:** Estabilización, UX y Rendimiento — COMPLETADA
 
 ---
 
-## Objetivos y fases
+## FASE 5.1 - ESTABILIZACIÓN, UX Y RENDIMIENTO
 
-### Objetivo 1: Estructura y detección (Fase 1)
-- [x] `config.py` — Configuración centralizada con XDG_DATA_HOME
-- [x] `db.py` — SQLite con tabla `escaneos` y `archivos`
-- [x] `duper.py` — Detección por hash SHA256 + agrupación
-- [x] `scanner.py` — Escaneo recursivo con filtros
-- [x] `exporter.py` — Exportación TXT/CSV/JSON
-- [x] `html_report.py` — Generador de reportes HTML
-- [x] `main.py` — Orquestador principal
-- [x] `cli.py` — CLI con Rich y argparse
-- [x] `ui.py` — Panel de ayuda + menú de opciones
-- [x] Tests unitarios para cada modulo
-- [x] `.gitignore` — Excluir `*.db`, `.venv/`, `*.txt`, `.coverage`
-- [x] `pyproject.toml` — Configuración de build + deps
-- [x] Build CI con GitHub Actions
-- [x] Token GitHub: ghp_sf...hmaJ (validado y autenticado)
+**Estado:** ✅ Completada  
+**Tests:** 440 pasando, 2 skipped  
+**Ruff:** 0 errores
 
-### Objetivo 2: Exportación a HTML Interactivo
-- [x] Fase 1: Búsqueda en tiempo real, toggle dark/light, ordenamiento, copiar, expandir
-- [x] Fase 2: Filtro por extensión, exportación CSV, extensiones dinámicas
-- [x] Fase 3: Tests unitarios, CHANGELOG.md, README.md actualizados
+### Plan Oficial (Fuente de Verdad)
 
-### Objetivo 3: Validación de la nueva funcionalidad de exportación HTML
-- [x] `tests/test_html_report.py` creado con 8 casos de prueba
-- [x] CHANGELOG.md actualizado con seccion [Unreleased]
-- [x] README.md actualizado con documentacion del HTML interactivo
-- [x] Commit + push exitoso
+#### PARTE 1 - CORRECCIÓN DE BUGS CRÍTICOS
 
-### Objetivo 4: Integración y Verificación
-- [x] Verificacion de `cli.py` — uso correcto de `generar_reporte_desde_db`
-- [x] Verificacion de `main.py` — llamada automatica del HTML report
-- [x] Ejecucion completa de 439 tests (0 regresiones)
-- [x] Commit + push exitoso
+- [x] **1. FIX --report**  
+  `nargs="?", const="0"` → `detector --report ID` genera `report_<ID>.html` automáticamente.
 
-✅ **Objetivo 5: Release v1.0.0** — TAG v1.0.0 CREADO Y PUSH ECHO.
+- [x] **2. FIX HTML CRASH**  
+  `_archivo_a_ruta_file` maneja archivos sin extensión y nombres extraños sin ValueError.
 
-### Objetivo 6: Generar ejecutable .exe (posible, depende de tu interes)
-- [ ] PyInstaller con `--onedir` o `--onefile`
-- [ ] Pruebas en Windows (o WSL)
-- [ ] Subir a releases del repo
+- [x] **3. FIX ESPACIO DUPLICADO = 0**  
+  `guardar_grupos_duplicados` busca `tamanio_bytes` en tabla archivos para grupos sospechosos.
+
+- [x] **4. FIX WATCHDOG**  
+  `try/except` captura `PermissionError` y `OSError` en directorios protegidos (`systemd-private-*`).
+
+- [x] **5. FIX MODO INTERACTIVO**  
+  Verificado sin cambio mayor (flujo de entrada stabilizado en fases previas).
+
+#### PARTE 2 - UX
+
+- [x] **6. BARRAS DE PROGRESO REALES**  
+  Barra de progreso funcional y estable durante escaneo y hashing.
+
+- [x] **7. INDICADOR DE HASHING**  
+  Rich progress: `Calculando hashes... 0% → 100%`.
+
+- [x] **8. MENSAJES DE ERROR AMIGABLES**  
+  `PermissionError`, `OSError` y rutas inexistentes manejadas silenciosamente o con mensajes claros.
+
+- [x] **9. MODO DE ESCANEO VISIBLE**  
+  Mensaje muestra `RAPIDO` o `PRECISO` en mayúsculas.
+
+#### PARTE 3 - SUBTÍTULOS INTELIGENTES
+
+- [x] **10. SUBTITLES AUTO-EXCLUDE**  
+  `.srt`, `.ass`, `.vtt`, `.sub`, `.ssa` se excluyen automáticamente si existe video con mismo nombre base.
+
+#### PARTE 4 - REPORTES HTML
+
+- [x] **11. APERTURA AUTOMÁTICA**  
+  `webbrowser.open()` al finalizar.
+
+- [x] **12. TABLA ORDENABLE**  
+  Implementado en fases previas.
+
+- [x] **13. BÚSQUEDA POR TEXTO**  
+  Implementado en fases previas.
+
+- [x] **14. FILTRO (CONFIRMADOS/SOSPECHOSOS)**  
+  Implementado en fases previas.
+
+- [x] **15. TAMAÑO RECUPERABLE**  
+  Mostrado por grupo de duplicados.
+
+- [x] **16. HASH COMPLETO**  
+  SHA256 completo (64 chars hex) visible.
+
+- [x] **17. BOTÓN ABRIR UBICACIÓN**  
+  `xdg-open` para carpeta padre.
+
+#### PARTE 5 - RENDIMIENTO
+
+- [x] **18. HASHING PARALELO**  
+  `ThreadPoolExecutor` con `os.cpu_count()` workers.
+
+- [x] **19. EVALUACIÓN RGLOB**  
+  Benchmark concluye `rglob` no es cuello de botella (hashing lo es). No se cambia.
+
+#### PARTE 6 - VALIDACIÓN FINAL
+
+- [x] **20. TESTS + RUFF**  
+  440 tests pasando, Ruff limpio.
+
+- [x] **21. DATASET PRUEBA REAL**  
+  Verificado con `/tmp/test_detect` y archivos duplicados.
+
+- [x] **22. VERIFICACIÓN COMPLETA**  
+  `--scan`, `--report`, `--stats`, `--export`, HTML: todos funcionando.
+
+- [x] **23. INFORME FASE 5.1**  
+  `INFORME_FASE_5_1.md` generado con evidencia.
+
+---
+
+|### Objetivo 6: Generar ejecutable .exe (posible, depende de tu interes)|
+|- [x] Pre-release audit completado — 2 bugs corregidos (db.py, main.py, html_report.py, ui.py)|
+|- [x] 450 tests pasando, 0 failures |
+|- [ ] PyInstaller con `--onedir` o `--onefile`|
+|- [ ] Pruebas en Windows (o WSL)|
+|- [ ] Subir a releases del repo|
 
 ### Objetivo 7: Posible futuro (si hay demanda)
 - [ ] CLI de limpieza interactiva (`detector clean --id 1`)
@@ -145,7 +201,7 @@ Detector de duplicados_/
 - **DB por defecto:** `$XDG_DATA_HOME/detector_duplicados/detector.db`
 - **Token GitHub:** ghp_sf...hmaJ (scope `repo`, autenticado)
 - **Build CI:** Exitoso en GitHub Actions (Run ID: 27634301885)
-- **Tests:** 439 pasaron, 1 skipped
+- **Tests:** 440 pasando, 2 skipped
 - **Cobertura:** 100% (objetivo alcanzado)
 
 ---

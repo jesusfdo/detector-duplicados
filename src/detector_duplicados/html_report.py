@@ -5,6 +5,7 @@ ubicaciones directamente desde el navegador.
 """
 
 import datetime
+import os
 import platform
 import webbrowser
 from pathlib import Path
@@ -56,9 +57,16 @@ def generar_reporte_html(
     total_espacio_duplicado = 0
 
     for grupo_id, info in archivos_duplicados.items():
-        rutas = info.get("rutas", [])
-        tamanio = info.get("tamanio") or 0
-        espacio_potencial = tamanio * (len(rutas) - 1)
+        # Soportar ambos formatos: {key: {"rutas": [...], "tamanio": ...}} (rapido)
+        # y {hash: [ruta1, ruta2, ...]} (preciso)
+        if isinstance(info, list):
+            rutas = info
+            tamanio = 0
+            espacio_potencial = tamanio * (len(rutas) - 1)
+        else:
+            rutas = info.get("rutas", [])
+            tamanio = info.get("tamanio") or 0
+            espacio_potencial = tamanio * (len(rutas) - 1)
         total_espacio_duplicado += espacio_potencial
 
         archivos_data[str(grupo_id)] = {
@@ -67,14 +75,28 @@ def generar_reporte_html(
             "espacio_potencial": espacio_potencial,
         }
 
+    # Preparar datos de carpetas para serializar al JS
     carpetas_data = {}
     for grupo_id, info in carpetas_duplicadas.items():
+        # Soportar varios formatos:
+        #   {key: {"rutas": [...], "nombre": ...}} (rapido)
+        #   {key: [ruta1, ruta2, ...]} (rapido sospechosos)
+        #   {key: [obj1, obj2, ...]} (preciso sospechosos — objetos de archivo)
         if isinstance(info, list):
-            rutas = info
-            nombre = "carpeta_desconocida"
-        else:
+            if info and isinstance(info[0], dict):
+                # Lista de objetos de archivo — extraer solo la ruta
+                rutas = [item["ruta"] for item in info if isinstance(item, dict) and "ruta" in item]
+                nombre = f"carpeta_{grupo_id}"
+            else:
+                # Lista de strings de ruta
+                rutas = info
+                nombre = f"carpeta_{grupo_id}"
+        elif isinstance(info, dict):
             rutas = info.get("rutas", [])
             nombre = info.get("nombre", "Desconocido")
+        else:
+            rutas = [info] if info else []
+            nombre = f"carpeta_{grupo_id}"
 
         carpetas_data[str(grupo_id)] = {
             "nombre": nombre,
@@ -653,15 +675,16 @@ def _generar_filas_archivos(archivos_data):
 
         rutas_html = ""
         for ruta in rutas:
-            file_url = _archivo_a_ruta_file(ruta)
+            parent_dir = os.path.dirname(ruta)
+            folder_url = _archivo_a_ruta_file(parent_dir)
             rutas_html += f"""
                     <li>
-                        <a href="{file_url}" title="Abrir: {ruta}">
-                            📂 {ruta}
-                        </a>
-                        <button class="copy-btn" data-path="{ruta}" style="margin-left: 8px; font-size: 11px;">
+                        <button class="copy-btn" data-path="{ruta}" style="margin-right: 4px; font-size: 11px;">
                             📋 Copiar
                         </button>
+                        <a href="{folder_url}" title="Abrir carpeta: {parent_dir}" style="font-size: 11px;">
+                            📂 Abrir ubicación
+                        </a>
                     </li>"""
 
         html += f"""
@@ -690,15 +713,16 @@ def _generar_filas_carpetas(carpetas_data):
 
         rutas_html = ""
         for ruta in rutas:
-            file_url = _archivo_a_ruta_file(ruta)
+            parent_dir = os.path.dirname(ruta)
+            folder_url = _archivo_a_ruta_file(parent_dir)
             rutas_html += f"""
                     <li>
-                        <a href="{file_url}" title="Abrir: {ruta}">
-                            📂 {ruta}
-                        </a>
-                        <button class="copy-btn" data-path="{ruta}" style="margin-left: 8px; font-size: 11px;">
+                        <button class="copy-btn" data-path="{ruta}" style="margin-right: 4px; font-size: 11px;">
                             📋 Copiar
                         </button>
+                        <a href="{folder_url}" title="Abrir carpeta: {parent_dir}" style="font-size: 11px;">
+                            📂 Abrir ubicación
+                        </a>
                     </li>"""
 
         html += f"""
@@ -721,9 +745,9 @@ def _generar_opciones_extensiones(archivos_data):
     extensiones = set()
     for info in archivos_data.values():
         for ruta in info["rutas"]:
-            _, ext = Path(ruta).suffix.rsplit(".", 1)
+            ext = Path(ruta).suffix
             if ext:
-                extensiones.add(f".{ext}")
+                extensiones.add(ext)
 
     opciones = ""
     for ext in sorted(extensiones):
@@ -735,6 +759,7 @@ def generar_reporte_desde_db(
     escaneo_id: int,
     nombre_reporte: str = "detector_report_db.html",
     abrir_navegador: bool = True,
+    db_path: str | None = None,
 ) -> str:
     """Genera un reporte HTML cargando datos desde la base de datos SQLite.
 
@@ -744,6 +769,7 @@ def generar_reporte_desde_db(
         escaneo_id: ID del escaneo en la base de datos.
         nombre_reporte: Nombre del archivo HTML a generar.
         abrir_navegador: Si True, abre el HTML en el navegador automáticamente.
+        db_path: Ruta opcional a la DB. Si None, usa la ruta por defecto.
 
     Returns:
         Ruta al archivo generado.
@@ -757,7 +783,10 @@ def generar_reporte_desde_db(
             obtener_escaneo,
         )
 
-        conn = create_connection()
+        if db_path:
+            conn = create_connection(db_path)
+        else:
+            conn = create_connection()
         create_tables(conn)
 
         escaneo = obtener_escaneo(conn, escaneo_id)

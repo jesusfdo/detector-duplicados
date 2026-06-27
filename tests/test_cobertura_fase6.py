@@ -107,8 +107,20 @@ class TestGenerarReporteDesdeDB:
         assert escaneo_id > 0
 
         archivos = [
-            {"ruta": "/test/a.txt", "nombre": "a.txt", "extension": ".txt", "tamanio_bytes": 100, "hash_sha256": "abc123"},
-            {"ruta": "/test/b.txt", "nombre": "b.txt", "extension": ".txt", "tamanio_bytes": 100, "hash_sha256": "abc123"},
+            {
+                "ruta": "/test/a.txt",
+                "nombre": "a.txt",
+                "extension": ".txt",
+                "tamanio_bytes": 100,
+                "hash_sha256": "abc123",
+            },
+            {
+                "ruta": "/test/b.txt",
+                "nombre": "b.txt",
+                "extension": ".txt",
+                "tamanio_bytes": 100,
+                "hash_sha256": "abc123",
+            },
         ]
         guardar_archivos(conn, escaneo_id, archivos)
         # guardar_grupos_duplicados expects: {hash_sha256: [rutas, ...]}
@@ -213,8 +225,8 @@ class TestObtenerMetadataArchivo:
         # Correct PNG header: signature + chunk_length(13) + chunk_type(IHDR) + width + height
         png_header = (
             b"\x89PNG\r\n\x1a\n"  # PNG signature (8 bytes)
-            + struct.pack(">I", 13)     # Chunk length (13 bytes for IHDR)
-            + b"IHDR"                   # Chunk type
+            + struct.pack(">I", 13)  # Chunk length (13 bytes for IHDR)
+            + b"IHDR"  # Chunk type
             + struct.pack(">I", 1920)  # Width (> 1280)
             + struct.pack(">I", 1080)  # Height
             + b"\x00" * 200
@@ -230,10 +242,7 @@ class TestObtenerMetadataArchivo:
         from detector_duplicados.cleaner import obtener_metadata_archivo
 
         png_header = (
-            b"\x89PNG\r\n\x1a\n"
-            + struct.pack(">I", 800)
-            + struct.pack(">I", 600)
-            + b"\x00" * 200
+            b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 800) + struct.pack(">I", 600) + b"\x00" * 200
         )
         f = tmp_path / "img_sd.png"
         f.write_bytes(png_header)
@@ -757,8 +766,15 @@ class TestBuildParser:
         from detector_duplicados.cli import build_parser
 
         parser = build_parser()
-        args = parser.parse_args(["--report", "1", "output.html"])
-        assert args.report == ["1", "output.html"]
+        args = parser.parse_args(["--report", "1"])
+        assert args.report == "1"
+
+    def test_parser_report_no_id(self):
+        from detector_duplicados.cli import build_parser
+
+        parser = build_parser()
+        args = parser.parse_args(["--report"])
+        assert args.report == "0"
 
     def test_parser_modo_preciso(self):
         from detector_duplicados.cli import build_parser
@@ -881,17 +897,17 @@ class TestMain:
                         mock_exp.assert_called_once()
 
     def test_main_report_action(self, tmp_path):
-            from detector_duplicados.cli import main
+        from detector_duplicados.cli import main
 
-            with patch("sys.argv", ["detector", "--report", "1", "output.html"]):
-                with patch("detector_duplicados.cli.obtener_escaneo_detalle") as mock_det:
-                    mock_det.return_value = {"duplicados": []}
-                    # Mock where generar_reporte_desde_db is imported FROM (html_report module)
-                    with patch("detector_duplicados.html_report.generar_reporte_desde_db") as mock_gen:
-                        mock_gen.return_value = "/tmp/report.html"
-                        with patch("detector_duplicados.cli.console"):
-                            main()
-                            mock_gen.assert_called_once()
+        with patch("sys.argv", ["detector", "--report", "1", "output.html"]):
+            with patch("detector_duplicados.cli.obtener_escaneo_detalle") as mock_det:
+                mock_det.return_value = {"duplicados": []}
+                # Mock where generar_reporte_desde_db is imported FROM (html_report module)
+                with patch("detector_duplicados.html_report.generar_reporte_desde_db") as mock_gen:
+                    mock_gen.return_value = "/tmp/report.html"
+                    with patch("detector_duplicados.cli.console"):
+                        main()
+                        mock_gen.assert_called_once()
 
     def test_main_watch_action(self, tmp_path):
         from detector_duplicados.cli import main
@@ -944,30 +960,39 @@ class TestMain:
                     assert call_kwargs[1]["modo"] == "rapido"
 
     def test_main_cleanup_action(self, tmp_path):
-            from detector_duplicados.cli import main
+        from detector_duplicados.cli import main
 
-            with patch(
-                "sys.argv",
-                ["detector", "--cleanup", "1", "--dry-run", "--politica", "keep_newest", "--profile", "default"],
-            ):
-                with patch("detector_duplicados.cli.obtener_escaneo_detalle") as mock_det:
-                    mock_det.return_value = {
-                        "confirmados": {},
-                        "duplicados_archivos": {},
-                        "duplicadas_carpetas": {},
+        with patch(
+            "sys.argv",
+            [
+                "detector",
+                "--cleanup",
+                "1",
+                "--dry-run",
+                "--politica",
+                "keep_newest",
+                "--profile",
+                "default",
+            ],
+        ):
+            with patch("detector_duplicados.cli.obtener_escaneo_detalle") as mock_det:
+                mock_det.return_value = {
+                    "confirmados": {},
+                    "duplicados_archivos": {},
+                    "duplicadas_carpetas": {},
+                }
+                # Mock where dry_run_cleanup is imported FROM (cleaner module)
+                with patch("detector_duplicados.cleaner.dry_run_cleanup") as mock_dry:
+                    mock_dry.return_value = {
+                        "total_duplicados": 0,
+                        "total_archivos": 0,
+                        "espacio_total": 0,
+                        "espacio_recuperable": 0,
+                        "acciones": [],
                     }
-                    # Mock where dry_run_cleanup is imported FROM (cleaner module)
-                    with patch("detector_duplicados.cleaner.dry_run_cleanup") as mock_dry:
-                        mock_dry.return_value = {
-                            "total_duplicados": 0,
-                            "total_archivos": 0,
-                            "espacio_total": 0,
-                            "espacio_recuperable": 0,
-                            "acciones": [],
-                        }
-                        with patch("detector_duplicados.cli.console"):
-                            main()
-                            mock_dry.assert_called_once()
+                    with patch("detector_duplicados.cli.console"):
+                        main()
+                        mock_dry.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

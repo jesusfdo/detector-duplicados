@@ -5,6 +5,7 @@ Soporta deteccion por hash (Fase 1) y deteccion por nombre (legacy).
 Persiste resultados en SQLite (Fase 2).
 """
 
+import os
 import time
 
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
@@ -23,7 +24,12 @@ from .db import (
 )
 from .duper import encontrar_duplicados
 from .exporter import guardar_resultados_txt
-from .scanner import parse_rutas, recopilar_info
+from .scanner import (
+    agrupar_por_tamanio,
+    calcular_hash_grupo_con_thread,
+    parse_rutas,
+    recopilar_info,
+)
 from .theme import console
 from .ui import (
     mostrar_arbol_resultados,
@@ -65,7 +71,8 @@ def run(
         rutas = parse_rutas(ruta_input)
 
     mostrar_bienvenida(get_current_user())
-    mostrar_estado_mensaje(f"Escaneando {len(rutas)} ruta(s) en modo [{modo}]...", "info")
+    modo_display = modo.upper()
+    mostrar_estado_mensaje(f"Escaneando {len(rutas)} ruta(s) en modo {modo_display}...", "info")
 
     # --- Escaneo con barra de progreso ---
     archivos = []
@@ -107,10 +114,59 @@ def run(
     )
 
     # --- Deteccion ---
+    total_conf = 0
+    total_sos = 0
+    confirmados: dict = {}
+    sospechosos: dict = {}
     if modo == "preciso":
-        confirmados, sospechosos, total_conf, total_sos = encontrar_duplicados(
-            archivos, carpetas, confirmar_por_hash=True
-        )
+        # Agrupar por tamaño y hashear con barra de progreso
+        grupos_tamanio = agrupar_por_tamanio(archivos)
+        archivos_a_hash = sum(len(v) for v in grupos_tamanio.values())
+
+        # Diccionario: hash -> [rutas]
+        confirmados_map: dict[str, list[str]] = {}
+        sospechosos_map: dict[str, list[dict]] = {}
+
+        if archivos_a_hash > 0:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            ) as barra_hash:
+                task = barra_hash.add_task("Calculando hashes...", total=archivos_a_hash)
+                for _, grp_archivos in grupos_tamanio.items():
+                    hashes = calcular_hash_grupo_con_thread(
+                        grp_archivos, max_workers=os.cpu_count() or 4
+                    )
+                    # Agrupar por hash dentro del grupo
+                    hash_groups: dict[str, list[str]] = {}
+                    for arch in grp_archivos:
+                        h = hashes.get(str(arch["ruta"]))
+                        if h is not None:
+                            hash_groups.setdefault(h, []).append(str(arch["ruta"]))
+                    # Los hashes con 2+ rutas son confirmados
+                    for h, rutas in hash_groups.items():
+                        if len(rutas) > 1:
+                            confirmados_map[h] = rutas
+                        barra_hash.update(task, advance=len(grp_archivos))
+            confirmados = confirmados_map
+            sospechosos = sospechosos_map
+            total_conf = len(confirmados_map)
+            total_sos = 0
+            # Tambien detectar sospechosos por nombre+tamano (mismo modo rapido)
+            from collections import defaultdict
+
+            by_name_size: dict[str, list[dict]] = defaultdict(list)
+            for arch in archivos:
+                key = f"{arch['nombre'].lower()}-{int(arch['tamanio'])}"
+                by_name_size[key].append(arch)
+            for key, archs in by_name_size.items():
+                if len(archs) > 1:
+                    # Solo guardar rutas (no los dicts completos) para compatibilidad con UI
+                    rutas = [a["ruta"] for a in archs]
+                    sospechosos[key] = rutas
+                    total_sos += 1
     else:
         confirmados, sospechosos, total_conf, total_sos = encontrar_duplicados(
             archivos, carpetas, confirmar_por_hash=False
