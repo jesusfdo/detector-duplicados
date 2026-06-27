@@ -29,12 +29,6 @@ htmlcov/
 # Database & test data
 *.db
 *.txt
-2
-3
-
-# Backups & legacy
-Detector de duplicados.py.bak
-legacy/
 
 # Logs
 logs/

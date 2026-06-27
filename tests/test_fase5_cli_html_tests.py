@@ -2,8 +2,6 @@
 
 import os
 
-import pytest
-
 
 class TestHTMLReport:
     """Tests para html_report.py."""
@@ -60,7 +58,6 @@ class TestHTMLReport:
 
     def test_generar_reporte_desde_db(self, tmp_path):
         """generar_reporte_desde_db funciona con DB vacia."""
-        import tempfile
         from src.detector_duplicados.db import create_connection, create_tables, guardar_escaneo
         from src.detector_duplicados.html_report import generar_reporte_desde_db
 

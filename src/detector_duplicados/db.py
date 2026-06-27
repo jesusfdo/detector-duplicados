@@ -85,11 +85,9 @@ def create_connection(db_path: str | None = None) -> sqlite3.Connection:
         if integrity and integrity[0] != "ok":
             print(
                 "\n[red]⚠️  La base de datos parece corrupta.[/]\n"
-                "  Ruta: [path]{}[/]\n"
-                "  Detalle: {}"
-                "\n[red]Se intentara una reparacion automatica...[/]\n".format(
-                    db_path, integrity[0]
-                )
+                f"  Ruta: [path]{db_path}[/]\n"
+                f"  Detalle: {integrity[0]}"
+                "\n[red]Se intentara una reparacion automatica...[/]\n"
             )
             # Intentar reparacion: renombrar y crear nueva
             backup_path = db_path + ".corrupt"

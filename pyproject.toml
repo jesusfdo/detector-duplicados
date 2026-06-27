@@ -41,6 +41,7 @@ indent-style = "space"
     "E501",   # test data lines are often long
     "F841",   # tests check file output, not return values
 ]
+"src/detector_duplicados/html_report.py" = ["E501"]  # ponytail: HTML+JS inline, lines naturally long
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
