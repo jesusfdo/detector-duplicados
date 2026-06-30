@@ -121,12 +121,12 @@ def _walk_directory(
         try:
             # Excluir directorios por nombre (salta TODO el subtree)
             if elemento.name in exclusiones:
-                if barra and bar_task:
+                if barra and bar_task is not None:
                     barra.update(bar_task, advance=1)
                 continue
 
             if elemento.is_dir():
-                if barra and bar_task:
+                if barra and bar_task is not None:
                     barra.update(bar_task, advance=1)
                 carpetas.append(
                     {
@@ -152,15 +152,15 @@ def _walk_directory(
                 if archivos_video_nombres and _es_subtitulo_excluido(
                     nombre_base, extension, archivos_video_nombres
                 ):
-                    if barra and bar_task:
+                    if barra and bar_task is not None:
                         barra.update(bar_task, advance=1)
                     continue
 
                 if extensiones and extension not in extensiones:
-                    if barra and bar_task:
+                    if barra and bar_task is not None:
                         barra.update(bar_task, advance=1)
                     continue
-                if barra and bar_task:
+                if barra and bar_task is not None:
                     barra.update(bar_task, advance=1)
                 stat = elemento.stat()
                 archivos.append(
@@ -174,7 +174,7 @@ def _walk_directory(
                 )
         except (PermissionError, OSError) as e:
             print(f"[red]⚠ Error al procesar {elemento}: {e}")
-            if barra and bar_task:
+            if barra and bar_task is not None:
                 barra.update(bar_task, advance=1)
             continue
 

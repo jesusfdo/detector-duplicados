@@ -657,8 +657,9 @@ def generar_reporte_html(
     # Abrir automáticamente en el navegador si se solicita
     if abrir_navegador:
         try:
+            import threading
             url = f"file://{report_path.resolve()}"
-            webbrowser.open(url)
+            threading.Thread(target=webbrowser.open, args=(url,), daemon=True).start()
         except Exception as e:
             print(f"[warning] No se pudo abrir el navegador: {e}")
 
