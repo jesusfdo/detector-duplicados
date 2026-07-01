@@ -27,7 +27,8 @@ jobs:
           pip install pyinstaller
       
       - name: Build EXE
-        run: pyinstaller --clean --onefile -n DetectorDeDuplicados --console src/detector_duplicados/cli.py
+        shell: cmd
+        run: pyinstaller --clean --onefile -n DetectorDeDuplicados --console src\detector_duplicados\cli.py
       
       - name: Upload to GitHub Release
         if: github.event_name == 'push'
