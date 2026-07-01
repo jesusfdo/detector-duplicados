@@ -1,0 +1,51 @@
+# Ponytail: CI/CD para release de detector-duplicados
+# Compila el EXE en Windows (PyInstaller) y publica como release asset
+# Linux se usa solo para tests — cross-compile de Windows desde Linux no es viable
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install pyinstaller
+          pyinstaller --version
+      
+      - name: Build EXE (PyInstaller)
+        run: |
+          pyinstaller --clean --onefile ^
+            --name DetectorDeDuplicados ^
+            --noconsole ^
+            --add-data "src/detector_duplicados/templates;templates" ^
+            src/detector_duplicados/cli.py
+      
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/DetectorDeDuplicados.exe
+          generate_release_notes: true
+        if: startsWith(github.ref, 'refs/tags/')
