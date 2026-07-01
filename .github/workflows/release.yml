@@ -40,7 +40,6 @@ jobs:
           pyinstaller --clean --onefile ^
             --name DetectorDeDuplicados ^
             --noconsole ^
-            --add-data "src/detector_duplicados/templates;templates" ^
             src/detector_duplicados/cli.py
       
       - name: Upload release asset
